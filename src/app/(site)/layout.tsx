@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Reveal } from "@/components/site/reveal";
+import { SceneBackground } from "@/components/site/scene/scene-background";
 import { SiteFooter } from "@/components/site/site-footer";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       >
         Pular para o conteúdo
       </a>
+      <SceneBackground />
       {children}
       <SiteFooter />
       <Suspense>

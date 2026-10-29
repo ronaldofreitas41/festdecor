@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BrandLogo, Foliage } from "@/components/site/brand-logo";
+import { BrandLogo } from "@/components/site/brand-logo";
+import { FeaturedRail } from "@/components/site/featured-rail";
 import { MediaImage } from "@/components/site/media-image";
 import { QuoteComposer } from "@/components/site/quote-composer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -37,7 +38,7 @@ export default async function HomePage() {
         <Featured projects={featured} />
         <About />
         <Process />
-        <section id="orcamento" aria-labelledby="orcamento-titulo" className="scroll-mt-6 px-margin pt-[clamp(7rem,14vw,13rem)]">
+        <section id="orcamento" data-bg="cream" data-scene="3" aria-labelledby="orcamento-titulo" className="scroll-mt-6 bg-bg px-margin pt-[clamp(7rem,14vw,13rem)]">
           <div className="max-w-[38rem]">
             <h2 id="orcamento-titulo" data-reveal className="text-head">
               Peça seu orçamento
@@ -56,31 +57,31 @@ export default async function HomePage() {
   );
 }
 
-/** A abertura é a própria logo: o campo terracota, as folhas tom sobre tom e o "fest" em creme. */
+/**
+ * A abertura é a própria logo sobre o campo terracota. Atrás dela, o fundo 3D faz chover pétalas;
+ * a foto do primeiro destaque fica num arco, como o "decor de eventos" da logo.
+ */
 function Hero({ lead }: { lead?: PublicProject }) {
   const cover = lead?.images[0];
   return (
-    <div className="relative overflow-hidden bg-brand text-brand-text lg:h-svh lg:min-h-[640px]">
-      <Foliage className="pointer-events-none absolute -top-[6%] -left-[14%] w-[78vw] -scale-y-100 rotate-[200deg] text-brand-leaf md:w-[46vw] lg:-top-[10%] lg:-left-[6%] lg:w-[34vw]" />
-      <Foliage className="pointer-events-none absolute -right-[18%] bottom-[18%] w-[70vw] rotate-[24deg] text-brand-leaf md:w-[40vw] lg:right-auto lg:bottom-[-14%] lg:left-[36%] lg:w-[26vw]" />
+    <div data-bg="brand" data-scene="0" className="relative overflow-hidden bg-brand text-brand-text lg:h-svh lg:min-h-[680px]">
       <SiteHeader overlay />
-      <div className="relative grid gap-12 px-margin pt-24 pb-10 lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-[6vw] lg:pt-20 lg:pb-12">
+      <div className="relative grid gap-12 px-margin pt-28 pb-14 lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-[6vw] lg:pt-24 lg:pb-12">
         <div className="flex flex-col items-start gap-8 lg:gap-[5vh]">
           <h1 className="wordmark-scale w-full text-brand-ink">
-            <BrandLogo id="logo-abertura" className="h-auto w-[min(100%,34rem)] md:w-[min(70vw,40rem)] lg:w-[min(100%,72vh)]" />
+            <BrandLogo id="logo-abertura" className="h-auto w-[min(100%,34rem)] md:w-[min(70vw,40rem)] lg:w-[min(100%,58vh)]" />
           </h1>
           <div className="flex flex-col items-start gap-6">
-            <p className="max-w-[28rem] text-lead leading-snug">
+            <p data-reveal className="max-w-[28rem] text-lead leading-snug">
               Decoração, cenografia e flores para casamentos, 15 anos e eventos em Belo Horizonte.
             </p>
-            <Link href="#orcamento" className="btn-primary on-brand">
+            <Link href="#orcamento" data-reveal style={{ "--i": 1 } as React.CSSProperties} className="btn-primary on-brand">
               Pedir orçamento
             </Link>
           </div>
         </div>
-        {/* A foto do primeiro destaque, num arco como o "decor de eventos" da logo. */}
         <figure className="w-full max-w-[34rem] justify-self-center lg:max-w-none lg:justify-self-end">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-t-full bg-brand-leaf lg:aspect-auto lg:h-[min(76vh,46rem)]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[2rem] bg-brand-leaf shadow-[0_40px_80px_-30px_rgb(40_15_5/0.55)] lg:aspect-auto lg:h-[min(74vh,46rem)]">
             {cover ? (
               <MediaImage image={cover} fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="drift object-cover" />
             ) : (
@@ -105,76 +106,91 @@ function yearOf(date: string | null) {
   return date ? date.slice(0, 4) : "";
 }
 
+/** Os destaques passam de lado, como convidados chegando; atrás deles, as pétalas viram guirlanda. */
 function Featured({ projects }: { projects: PublicProject[] }) {
+  const header = (
+    <div className="flex flex-wrap items-end justify-between gap-4 px-margin">
+      <h2 id="destaques-titulo" data-reveal className="text-head">
+        Projetos em destaque
+      </h2>
+      <Link href="/portfolio" data-reveal className="link-quiet text-small">
+        Ver o portfólio completo
+      </Link>
+    </div>
+  );
   return (
-    <section id="destaques" aria-labelledby="destaques-titulo" className="scroll-mt-0 pt-[clamp(6rem,12vw,11rem)]">
-      <div className="flex flex-wrap items-end justify-between gap-4 px-margin pb-10">
-        <h2 id="destaques-titulo" data-reveal className="text-head">
-          Projetos em destaque
-        </h2>
-        <Link href="/portfolio" data-reveal className="link-quiet text-small">
-          Ver o portfólio completo
-        </Link>
-      </div>
-
+    <section id="destaques" data-bg="cream" data-scene="1" aria-labelledby="destaques-titulo" className="scroll-mt-0 bg-bg pt-[clamp(5rem,10vw,9rem)]">
       {projects.length === 0 ? (
-        <p className="px-margin text-lead text-muted">Os próximos projetos aparecem aqui em breve.</p>
+        <>
+          {header}
+          <p className="mt-10 px-margin text-lead text-muted">Os próximos projetos aparecem aqui em breve.</p>
+        </>
       ) : (
-        <ol>
+        <FeaturedRail header={header}>
           {projects.map((project, index) => {
             const cover = project.images[0];
             return (
-              <li key={project.id} className="relative h-[82svh] overflow-hidden bg-bg md:h-svh">
-                <article aria-labelledby={`destaque-${project.id}`} className="relative h-full">
-                  <MediaImage
-                    image={cover}
-                    fill
-                    sizes="100vw"
-                    loading={index === 0 ? "eager" : "lazy"}
-                    className="scale-[1.12] object-cover brightness-[0.78]"
-                  />
-                  {/* A mesma linha, sempre à meia altura: rolar é virar pranchas de um livro. */}
-                  <div className="absolute inset-x-0 bottom-5 grid grid-cols-2 items-center gap-x-4 gap-y-1 bg-brand/92 px-margin py-4 text-brand-text md:top-1/2 md:bottom-auto md:min-h-[90px] md:-translate-y-1/2 md:grid-cols-[1fr_auto_1fr]">
-                    <h3
-                      id={`destaque-${project.id}`}
-                      className="col-span-2 text-lead leading-tight font-medium tracking-[-0.02em] md:order-2 md:col-span-1"
-                    >
+              <li key={project.id} className="w-[80vw] shrink-0 snap-start sm:w-[58vw] lg:w-[min(36vw,34rem)]">
+                <article aria-labelledby={`destaque-${project.id}`} className="group relative">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-surface lg:aspect-auto lg:h-[min(58vh,40rem)]">
+                    <div data-parallax className="absolute inset-0 scale-[1.18] transition-transform duration-700 ease-out">
+                      <MediaImage
+                        image={cover}
+                        fill
+                        sizes="(min-width: 1024px) 36vw, 80vw"
+                        loading={index < 2 ? "eager" : "lazy"}
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                      />
+                    </div>
+                    <span className="absolute top-4 left-4 rounded-full bg-bg/85 px-3 py-1 text-small backdrop-blur-sm">
+                      {String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-baseline justify-between gap-4">
+                    <h3 id={`destaque-${project.id}`} className="text-lead leading-tight font-medium tracking-[-0.02em]">
                       <Link href={`/portfolio/${project.slug}`} className="after:absolute after:inset-0">
                         {project.title}
                       </Link>
                     </h3>
-                    <p className="text-small md:order-1">
+                    <p className="shrink-0 text-small text-muted">
                       {[project.category?.name, yearOf(project.eventDate)].filter(Boolean).join(", ")}
                     </p>
-                    <p className="text-right text-small md:order-3">{project.location}</p>
-                    <p className="col-span-2 mt-2 text-small md:hidden">{project.summary}</p>
                   </div>
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden bg-[linear-gradient(transparent,rgb(0_0_0/0.7))] px-margin pt-24 pb-8 md:block">
-                    <p className="max-w-[34rem] text-body text-on-photo">{project.summary}</p>
-                    {project.isDemo && (
-                      <p className="mt-2 text-small text-on-photo/85">
-                        Projeto de demonstração{cover.credit ? `. ${cover.credit}` : ""}
-                      </p>
-                    )}
-                  </div>
+                  <p className="mt-1 max-w-[34rem] text-small text-muted">
+                    {project.summary}
+                    {project.isDemo ? " Projeto de demonstração." : ""}
+                  </p>
                 </article>
               </li>
             );
           })}
-        </ol>
+        </FeaturedRail>
       )}
     </section>
   );
 }
 
+const STATEMENT = "Criamos eventos que não existiam antes.".split(" ");
+
+/** A frase da marca acende palavra por palavra enquanto passa pela tela. */
 function About() {
   return (
-    <section id="sobre" aria-labelledby="sobre-titulo" className="scroll-mt-6 px-[10px] pt-[clamp(7rem,14vw,13rem)] md:px-5">
-      <div className="grid gap-12 overflow-hidden bg-surface px-6 pt-10 sm:px-10 md:p-14 md:pb-0 lg:min-h-[110svh] lg:grid-cols-[1fr_minmax(0,24rem)] lg:gap-x-10 lg:pr-[8%]">
-        <h2 id="sobre-titulo" data-reveal className="max-w-[19ch] text-head lg:col-start-1 lg:row-start-1">
-          Criamos eventos que não existiam antes
-        </h2>
-        <div className="flex flex-col gap-12 md:max-w-[36rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pt-2">
+    <section id="sobre" data-bg="cream" data-scene="1" aria-labelledby="sobre-titulo" className="scroll-mt-6 bg-bg px-margin pt-[clamp(8rem,16vw,14rem)]">
+      <h2 id="sobre-titulo" className="scroll-words max-w-[16ch] text-[clamp(2.75rem,7.4vw,7.5rem)] leading-[0.96] tracking-[-0.035em]">
+        {STATEMENT.map((word, i) => (
+          <span key={i} style={{ "--w": i } as React.CSSProperties}>
+            {word}{" "}
+          </span>
+        ))}
+      </h2>
+      <div className="mt-[clamp(4rem,8vw,7rem)] grid gap-12 md:grid-cols-12 md:items-end">
+        <div
+          data-reveal
+          className="relative mx-auto aspect-[3/4] w-[86%] max-w-[30rem] overflow-hidden rounded-t-full rounded-b-[2rem] md:col-span-5 md:mx-0 md:w-full"
+        >
+          <Image src={fotoCopoDeLeite} alt="Um copo-de-leite branco sobre fundo escuro" fill sizes="(min-width: 768px) 40vw, 86vw" className="object-cover" />
+        </div>
+        <div className="flex flex-col gap-12 md:col-span-6 md:col-start-7 md:pb-6">
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
             <h3 className="text-lead tracking-[-0.015em]">Projeto autoral</h3>
             <p className="mt-3 text-body">
@@ -192,22 +208,6 @@ function About() {
           <Link href="#orcamento" data-reveal style={{ "--i": 3 } as React.CSSProperties} className="btn-primary self-start">
             Pedir orçamento
           </Link>
-        </div>
-        {/* O arco do copo-de-leite, cortado pela borda de baixo do painel. */}
-        <div className="-mb-[22%] self-end lg:col-start-1 lg:row-start-2 lg:-mb-[12%]">
-          <div
-            data-reveal
-            style={{ "--i": 2 } as React.CSSProperties}
-            className="relative mx-auto aspect-[3/4] w-[86%] max-w-[34rem] overflow-hidden rounded-t-full md:w-[60%] lg:mx-0 lg:mt-16 lg:w-[38vw]"
-          >
-            <Image
-              src={fotoCopoDeLeite}
-              alt="Um copo-de-leite branco sobre fundo escuro"
-              fill
-              sizes="(min-width: 768px) 38vw, 86vw"
-              className="object-cover"
-            />
-          </div>
         </div>
       </div>
     </section>
@@ -247,10 +247,10 @@ function Stage({ index, className }: { index: number; className?: string }) {
 /** Três fotografias descendo em diagonal; o texto de cada etapa ocupa o vão que a escada deixa. */
 function Process() {
   return (
-    <section aria-labelledby="processo-titulo" className="px-margin pt-[clamp(14rem,24vw,22rem)]">
+    <section data-bg="brand" data-scene="2" aria-labelledby="processo-titulo" className="mt-[clamp(6rem,12vw,10rem)] bg-brand px-margin pt-[clamp(7rem,14vw,12rem)] pb-[clamp(7rem,14vw,12rem)] text-brand-text">
       <div className="grid gap-6 md:grid-cols-12">
         <figure data-reveal className="max-md:order-2 md:col-span-5 lg:col-span-4">
-          <Image src={STAGES[0].image} alt={STAGES[0].alt} sizes="(min-width: 768px) 33vw, 100vw" className="aspect-[3/4] w-full object-cover" />
+          <Image src={STAGES[0].image} alt={STAGES[0].alt} sizes="(min-width: 768px) 33vw, 100vw" className="aspect-[3/4] w-full rounded-[2rem] object-cover" />
         </figure>
         <div className="max-md:contents md:col-span-6 md:col-start-7 md:flex md:flex-col md:gap-10">
           <h2 id="processo-titulo" data-reveal className="text-head max-md:order-1 max-md:mb-4">
@@ -262,7 +262,7 @@ function Process() {
 
       <div className="mt-14 grid gap-6 md:mt-24 md:grid-cols-12 lg:-mt-[16vw]">
         <figure data-reveal className="ml-auto w-[62%] md:col-span-4 md:col-start-5 md:ml-0 md:w-auto lg:col-span-3 lg:col-start-6">
-          <Image src={STAGES[1].image} alt={STAGES[1].alt} sizes="(min-width: 768px) 25vw, 62vw" className="aspect-square w-full object-cover" />
+          <Image src={STAGES[1].image} alt={STAGES[1].alt} sizes="(min-width: 768px) 25vw, 62vw" className="aspect-square w-full rounded-[2rem] object-cover" />
         </figure>
         <Stage index={1} className="ml-auto w-[62%] md:col-span-4 md:col-start-9 md:ml-0 md:w-auto" />
       </div>
@@ -270,7 +270,7 @@ function Process() {
       <div className="mt-14 grid gap-6 md:mt-[120px] md:grid-cols-12">
         <Stage index={2} className="w-[78%] md:order-1 md:col-span-4 md:col-start-3 md:w-auto md:justify-self-end" />
         <figure data-reveal className="w-[78%] md:order-2 md:col-span-6 md:col-start-7 md:w-auto lg:col-span-5 lg:col-start-8">
-          <Image src={STAGES[2].image} alt={STAGES[2].alt} sizes="(min-width: 768px) 42vw, 78vw" className="aspect-[16/10] w-full object-cover" />
+          <Image src={STAGES[2].image} alt={STAGES[2].alt} sizes="(min-width: 768px) 42vw, 78vw" className="aspect-[16/10] w-full rounded-[2rem] object-cover" />
         </figure>
       </div>
     </section>
@@ -287,10 +287,11 @@ function Contact({ settings }: { settings: Awaited<ReturnType<typeof getSiteSett
   return (
     <section
       id="contato"
+      data-bg="brand"
+      data-scene="3"
       aria-labelledby="contato-titulo"
       className="relative mt-[clamp(7rem,14vw,13rem)] flex min-h-[86svh] scroll-mt-0 flex-col justify-between gap-16 overflow-hidden bg-brand px-margin py-10 text-brand-text md:min-h-svh md:py-12 [&>*]:relative"
     >
-      <Foliage className="pointer-events-none !absolute -top-[8%] -right-[20%] w-[80vw] rotate-[150deg] text-brand-leaf md:w-[44vw] lg:-right-[6%] lg:w-[34vw]" />
       <div className="max-w-[34rem]">
         <h2 id="contato-titulo" className="text-lead tracking-[-0.015em]">
           Contato

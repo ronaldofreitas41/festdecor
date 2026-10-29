@@ -126,7 +126,8 @@
     align-items: center;
     gap: 0.6em;
     min-height: 48px;
-    padding: 0.7em 1.35em;
+    padding: 0.7em 1.5em;
+    border-radius: 999px;
     background: var(--accent);
     color: var(--accent-ink);
     font-size: var(--text-small);
@@ -159,6 +160,33 @@
   }
   .link-quiet:hover {
     text-decoration-color: currentColor;
+  }
+}
+
+/*
+ * Com o fundo 3D ativo, as seções ficam transparentes: a cor de cada uma é pintada pelo próprio fundo,
+ * com a mesma cor e a borda ondulando. Sem ele, cada seção mantém a sua cor.
+ */
+.has-scene [data-bg] {
+  background-color: transparent;
+}
+
+/* Frases que acendem palavra por palavra enquanto passam pela tela. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scroll-words > span {
+      animation: word-light linear both;
+      animation-timeline: view();
+      animation-range: cover calc(12% + var(--w) * 2.2%) cover calc(22% + var(--w) * 2.2%);
+    }
+    @keyframes word-light {
+      from {
+        opacity: 0.18;
+      }
+      to {
+        opacity: 1;
+      }
+    }
   }
 }
 

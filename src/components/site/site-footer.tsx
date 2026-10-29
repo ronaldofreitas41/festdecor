@@ -7,7 +7,7 @@ export async function SiteFooter() {
   cacheLife("days");
   const year = new Date().getFullYear();
   return (
-    <footer className="px-margin pt-[20svh] pb-6 md:pt-[30svh]">
+    <footer data-bg="cream" data-scene="3" className="bg-bg px-margin pt-[20svh] pb-6 md:pt-[30svh]">
       <div className="flex flex-col gap-2 text-small text-muted lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-baseline lg:gap-6">
         <p>Fest Decor, decoração de eventos em Belo Horizonte</p>
         <nav aria-label="Rodapé" className="flex flex-wrap gap-x-6 gap-y-1 text-ink">
