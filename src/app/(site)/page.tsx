@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo, Foliage } from "@/components/site/brand-logo";
 import { MediaImage } from "@/components/site/media-image";
 import { QuoteComposer } from "@/components/site/quote-composer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -55,39 +56,46 @@ export default async function HomePage() {
   );
 }
 
+/** A abertura é a própria logo: o campo terracota, as folhas tom sobre tom e o "fest" em creme. */
 function Hero({ lead }: { lead?: PublicProject }) {
   const cover = lead?.images[0];
   return (
-    <div className="relative flex min-h-svh flex-col bg-bg lg:h-svh">
+    <div className="relative overflow-hidden bg-brand text-brand-text lg:h-svh lg:min-h-[640px]">
+      <Foliage className="pointer-events-none absolute -top-[6%] -left-[14%] w-[78vw] -scale-y-100 rotate-[200deg] text-brand-leaf md:w-[46vw] lg:-top-[10%] lg:-left-[6%] lg:w-[34vw]" />
+      <Foliage className="pointer-events-none absolute -right-[18%] bottom-[18%] w-[70vw] rotate-[24deg] text-brand-leaf md:w-[40vw] lg:right-auto lg:bottom-[-14%] lg:left-[36%] lg:w-[26vw]" />
       <SiteHeader overlay />
-      <div className="relative h-[50svh] overflow-hidden md:h-[58svh] lg:h-auto lg:min-h-0 lg:flex-1">
-        {cover ? (
-          <MediaImage image={cover} fill preload sizes="100vw" className="drift object-cover brightness-[0.82]" />
-        ) : (
-          <Image src={fotoCopoDeLeite} alt="" fill preload sizes="100vw" className="object-cover" />
-        )}
-        {lead && (
-          <Link
-            href={`/portfolio/${lead.slug}`}
-            className="absolute right-margin bottom-4 bg-black/55 px-3 py-1.5 text-small text-ink hover:bg-black/70"
-          >
-            {lead.title}
-            {lead.isDemo ? ", projeto de demonstração" : ""}
-          </Link>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col-reverse justify-end gap-6 px-margin pt-5 pb-8 lg:flex-none lg:flex-col lg:gap-[4vh] lg:pt-6 lg:pb-5">
-        <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <p className="max-w-[30rem] text-body">
-            Decoração, cenografia e flores para casamentos, 15 anos e eventos em Belo Horizonte.
-          </p>
-          <Link href="#orcamento" className="btn-primary shrink-0">
-            Pedir orçamento
-          </Link>
+      <div className="relative grid gap-12 px-margin pt-24 pb-10 lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-[6vw] lg:pt-20 lg:pb-12">
+        <div className="flex flex-col items-start gap-8 lg:gap-[5vh]">
+          <h1 className="wordmark-scale w-full text-brand-ink">
+            <BrandLogo id="logo-abertura" className="h-auto w-[min(100%,34rem)] md:w-[min(70vw,40rem)] lg:w-[min(100%,72vh)]" />
+          </h1>
+          <div className="flex flex-col items-start gap-6">
+            <p className="max-w-[28rem] text-lead leading-snug">
+              Decoração, cenografia e flores para casamentos, 15 anos e eventos em Belo Horizonte.
+            </p>
+            <Link href="#orcamento" className="btn-primary on-brand">
+              Pedir orçamento
+            </Link>
+          </div>
         </div>
-        <h1 className="wordmark-scale text-[33vw] leading-[0.84] font-medium tracking-[-0.05em] whitespace-nowrap md:text-[24.2vw] lg:text-[min(24.2vw,40vh)]">
-          <span className="block md:inline">Fest</span> <span className="block md:inline">Decor</span>
-        </h1>
+        {/* A foto do primeiro destaque, num arco como o "decor de eventos" da logo. */}
+        <figure className="w-full max-w-[34rem] justify-self-center lg:max-w-none lg:justify-self-end">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-t-full bg-brand-leaf lg:aspect-auto lg:h-[min(76vh,46rem)]">
+            {cover ? (
+              <MediaImage image={cover} fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="drift object-cover" />
+            ) : (
+              <Image src={fotoCopoDeLeite} alt="" fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+            )}
+          </div>
+          {lead && (
+            <figcaption className="mt-3 text-small">
+              <Link href={`/portfolio/${lead.slug}`} className="link-quiet">
+                {lead.title}
+              </Link>
+              {lead.isDemo ? ", projeto de demonstração" : ""}
+            </figcaption>
+          )}
+        </figure>
       </div>
     </div>
   );
@@ -126,7 +134,7 @@ function Featured({ projects }: { projects: PublicProject[] }) {
                     className="scale-[1.12] object-cover brightness-[0.78]"
                   />
                   {/* A mesma linha, sempre à meia altura: rolar é virar pranchas de um livro. */}
-                  <div className="absolute inset-x-0 bottom-5 grid grid-cols-2 items-center gap-x-4 gap-y-1 bg-black/60 px-margin py-4 md:top-1/2 md:bottom-auto md:min-h-[90px] md:-translate-y-1/2 md:grid-cols-[1fr_auto_1fr]">
+                  <div className="absolute inset-x-0 bottom-5 grid grid-cols-2 items-center gap-x-4 gap-y-1 bg-brand/92 px-margin py-4 text-brand-text md:top-1/2 md:bottom-auto md:min-h-[90px] md:-translate-y-1/2 md:grid-cols-[1fr_auto_1fr]">
                     <h3
                       id={`destaque-${project.id}`}
                       className="col-span-2 text-lead leading-tight font-medium tracking-[-0.02em] md:order-2 md:col-span-1"
@@ -135,16 +143,16 @@ function Featured({ projects }: { projects: PublicProject[] }) {
                         {project.title}
                       </Link>
                     </h3>
-                    <p className="text-small text-ink md:order-1">
+                    <p className="text-small md:order-1">
                       {[project.category?.name, yearOf(project.eventDate)].filter(Boolean).join(", ")}
                     </p>
-                    <p className="text-right text-small text-ink md:order-3">{project.location}</p>
-                    <p className="col-span-2 mt-2 text-small text-ink md:hidden">{project.summary}</p>
+                    <p className="text-right text-small md:order-3">{project.location}</p>
+                    <p className="col-span-2 mt-2 text-small md:hidden">{project.summary}</p>
                   </div>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden bg-[linear-gradient(transparent,rgb(0_0_0/0.7))] px-margin pt-24 pb-8 md:block">
-                    <p className="max-w-[34rem] text-body text-ink">{project.summary}</p>
+                    <p className="max-w-[34rem] text-body text-on-photo">{project.summary}</p>
                     {project.isDemo && (
-                      <p className="mt-2 text-small text-muted">
+                      <p className="mt-2 text-small text-on-photo/85">
                         Projeto de demonstração{cover.credit ? `. ${cover.credit}` : ""}
                       </p>
                     )}
@@ -280,8 +288,9 @@ function Contact({ settings }: { settings: Awaited<ReturnType<typeof getSiteSett
     <section
       id="contato"
       aria-labelledby="contato-titulo"
-      className="mt-[clamp(7rem,14vw,13rem)] flex min-h-[86svh] scroll-mt-0 flex-col justify-between gap-16 bg-field px-margin py-10 text-field-ink md:min-h-svh md:py-12"
+      className="relative mt-[clamp(7rem,14vw,13rem)] flex min-h-[86svh] scroll-mt-0 flex-col justify-between gap-16 overflow-hidden bg-brand px-margin py-10 text-brand-text md:min-h-svh md:py-12 [&>*]:relative"
     >
+      <Foliage className="pointer-events-none !absolute -top-[8%] -right-[20%] w-[80vw] rotate-[150deg] text-brand-leaf md:w-[44vw] lg:-right-[6%] lg:w-[34vw]" />
       <div className="max-w-[34rem]">
         <h2 id="contato-titulo" className="text-lead tracking-[-0.015em]">
           Contato
@@ -294,7 +303,7 @@ function Contact({ settings }: { settings: Awaited<ReturnType<typeof getSiteSett
           href={displayHref}
           target={settings.email ? undefined : "_blank"}
           rel={settings.email ? undefined : "noopener"}
-          className="block text-[clamp(2.75rem,11.5vw,13rem)] leading-[0.95] font-medium tracking-[-0.04em] break-all transition-colors duration-300 hover:text-[#8a5a14] md:break-normal"
+          className="block text-[clamp(2.75rem,11.5vw,13rem)] leading-[0.95] font-medium tracking-[-0.04em] break-all transition-colors duration-300 text-brand-ink hover:text-white md:break-normal"
         >
           {display}
         </a>

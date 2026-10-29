@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { BrandLogo } from "./brand-logo";
 import { formatMonth, instagramLink, quoteMessage, whatsappLink, type ContactSettings, type QuoteRequest } from "@/lib/contact";
 
 const GUESTS = ["até 50", "50 a 100", "100 a 200", "200 a 300", "mais de 300"];
@@ -53,7 +54,7 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
                   onChange={set("eventType")}
                   className="peer sr-only"
                 />
-                <span className="inline-flex min-h-11 items-center rounded-full bg-surface-2 px-4 text-small text-ink transition-colors peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:bg-[#33291f] peer-checked:hover:bg-ink">
+                <span className="inline-flex min-h-11 items-center rounded-full bg-surface-2 px-4 text-small text-ink transition-colors peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:bg-surface-hover peer-checked:hover:bg-ink">
                   {type}
                 </span>
               </label>
@@ -64,7 +65,7 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
           <label className="text-small text-muted">
             Mês do evento
-            <input type="month" value={q.month} onChange={set("month")} className={`${fieldClass} [color-scheme:dark]`} />
+            <input type="month" value={q.month} onChange={set("month")} className={`${fieldClass} [color-scheme:light]`} />
           </label>
           <label className="text-small text-muted">
             Convidados
@@ -92,8 +93,9 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
       </form>
 
       <div className="md:col-span-6 lg:col-start-7">
-        <figure className="bg-field px-7 py-9 text-field-ink sm:px-10 sm:py-12" aria-live="polite">
-          <figcaption className="text-small text-field-muted">Sua mensagem</figcaption>
+        <figure className="bg-brand px-7 py-9 text-brand-text sm:px-10 sm:py-12" aria-live="polite">
+          <BrandLogo id="logo-convite" title="" className="mb-6 h-16 w-auto text-brand-ink sm:h-20" />
+          <figcaption className="text-small text-brand-ink">Sua mensagem</figcaption>
           <p className="mt-5 text-lead leading-snug font-medium tracking-[-0.015em]">
             {q.name.trim() ? `${q.name.trim()} quer celebrar` : "Um pedido de orçamento para"}
             {" "}
@@ -102,7 +104,7 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
             {q.place.trim() ? `, em ${q.place.trim()}` : ""}
             {q.guests ? `, com ${q.guests} convidados` : ""}.
           </p>
-          <p className="mt-6 text-small whitespace-pre-line text-field-muted">{message}</p>
+          <p className="mt-6 text-small whitespace-pre-line text-brand-ink">{message}</p>
         </figure>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-4">
           {wa ? (

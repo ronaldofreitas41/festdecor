@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "./brand-logo";
 import { MobileMenu } from "./mobile-menu";
 
 export const NAV = [
@@ -9,34 +10,25 @@ export const NAV = [
 ];
 
 /**
- * Barra simples: nome, quatro links e o orçamento.
- * Na home ela fica sobre a fotografia, sem o nome (o nome é o próprio título da página).
+ * Barra simples: a logo, quatro links e o orçamento.
+ * Na home ela fica sobre o campo terracota da abertura, sem a logo pequena (a logo grande é o título).
  */
 export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
   return (
-    <header
-      className={
-        overlay
-          ? "absolute inset-x-0 top-0 z-30 bg-[linear-gradient(rgb(0_0_0/0.55),transparent)]"
-          : "relative z-30 bg-bg"
-      }
-    >
-      <div className="flex items-center justify-between gap-6 px-margin py-5">
-        <Link
-          href="/"
-          className={`text-[1.375rem] font-medium tracking-[-0.02em] ${overlay ? "sr-only focus:not-sr-only" : ""}`}
-        >
-          Fest Decor
+    <header className={overlay ? "absolute inset-x-0 top-0 z-30 text-brand-text" : "relative z-30 bg-bg text-ink"}>
+      <div className="flex items-center justify-between gap-6 px-margin py-4">
+        <Link href="/" aria-label="Fest Decor, página inicial" className={overlay ? "sr-only focus:not-sr-only" : "text-brand"}>
+          <BrandLogo id="logo-topo" title="Fest Decor" className="h-16 w-auto md:h-20" />
         </Link>
         <nav aria-label="Principal" className="ml-auto hidden items-center gap-7 md:flex">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="text-small text-ink transition-opacity hover:opacity-70">
+            <Link key={item.href} href={item.href} className="text-small transition-opacity hover:opacity-70">
               {item.label}
             </Link>
           ))}
           {!overlay && (
             <Link href="/#orcamento" className="btn-primary">
-            Pedir orçamento
+              Pedir orçamento
             </Link>
           )}
         </nav>
@@ -45,7 +37,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
             Orçamento
           </Link>
         )}
-        <MobileMenu items={NAV} />
+        <MobileMenu items={NAV} className={overlay ? "ml-auto" : ""} />
       </div>
     </header>
   );

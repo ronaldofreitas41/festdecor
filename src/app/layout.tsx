@@ -14,6 +14,12 @@ const erode = localFont({
   ],
 });
 
+const quicksand = localFont({
+  variable: "--font-quicksand",
+  display: "swap",
+  src: [{ path: "./fonts/Quicksand-Medium.woff2", weight: "500", style: "normal" }],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
@@ -31,13 +37,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#13100d",
-  colorScheme: "dark",
+  themeColor: "#9b5030",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={erode.variable} suppressHydrationWarning>
+    <html lang="pt-BR" className={`${erode.variable} ${quicksand.variable}`} suppressHydrationWarning>
       <head>
         {/* Marca que há JavaScript antes da pintura, para as entradas animadas. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />

@@ -1,30 +1,36 @@
 @import "tailwindcss";
 
 /*
- * Fest Decor — a sala escura.
- * Um único chão quente, quase preto, como um salão à luz de velas.
- * As fotografias são o que brilha; o dourado da chama aparece só na ação principal.
+ * Fest Decor — as cores da logo.
+ * O terracota do fundo da logo é o campo da marca (abertura, contato) e a ação principal;
+ * o creme-pêssego das letras, clareado, é o chão onde as fotografias aparecem.
  */
 :root {
-  --bg: #13100d;
-  --surface: #1d1813;
-  --surface-2: #272019;
-  --ink: #f1eee9;
-  --muted: #bfb7ac;
-  --accent: #e8b56c;
-  --accent-ink: #13100d;
-  --field: #e6e3de;
-  --field-ink: #17120e;
-  --field-muted: #574f46;
+  --bg: #f7ede3;
+  --surface: #efdfd0;
+  --surface-2: #e6cfba;
+  --surface-hover: #dcbfa6;
+  --ink: #3a1e13;
+  --muted: #6b4232;
+  --accent: #9b5030;
+  --accent-hover: #86432a;
+  --accent-ink: #fbf1e7;
+  /* O campo da marca: o fundo terracota da logo, o creme das letras e o tom das folhas. */
+  --brand: #9b5030;
+  --brand-ink: #f4d3b4;
+  --brand-text: #fbeadb;
+  --brand-leaf: #a85a36;
+  /* Texto sobre fotografia escurecida. */
+  --on-photo: #fbf3ea;
 
-  /* Painel administrativo: claro, neutro e silencioso. */
-  --a-bg: #f6f3ee;
+  /* Painel administrativo: claro e silencioso, com o terracota da marca nas ações. */
+  --a-bg: #f8f2ec;
   --a-panel: #ffffff;
   --a-ink: #1c1814;
   --a-muted: #6b6157;
-  --a-line: #e4ddd3;
-  --a-accent: #7a4f12;
-  --a-accent-soft: #f4ead9;
+  --a-line: #e8ddd2;
+  --a-accent: #8a4528;
+  --a-accent-soft: #f6e4d6;
   --a-danger: #a3261b;
   --a-danger-soft: #fbe9e6;
   --a-ok: #276238;
@@ -39,11 +45,14 @@
   --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
+  --color-surface-hover: var(--surface-hover);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
-  --color-field: var(--field);
-  --color-field-ink: var(--field-ink);
-  --color-field-muted: var(--field-muted);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-text: var(--brand-text);
+  --color-brand-leaf: var(--brand-leaf);
+  --color-on-photo: var(--on-photo);
 
   --color-a-bg: var(--a-bg);
   --color-a-panel: var(--a-panel);
@@ -57,6 +66,7 @@
   --color-a-ok: var(--a-ok);
 
   --font-serif: var(--font-erode), "Iowan Old Style", Georgia, serif;
+  --font-brand: var(--font-quicksand), ui-sans-serif, system-ui, sans-serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Cinco tamanhos fazem todo o trabalho visível. */
@@ -110,7 +120,7 @@
 }
 
 @layer components {
-  /* Ação principal: o único sólido claro da página. */
+  /* Ação principal: o terracota da marca. */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -127,7 +137,15 @@
       background-color 180ms var(--ease-out);
   }
   .btn-primary:hover {
-    background: #f2c785;
+    background: var(--accent-hover);
+  }
+  /* Sobre o campo terracota, a ação inverte para o creme das letras da logo. */
+  .btn-primary.on-brand {
+    background: var(--brand-ink);
+    color: var(--ink);
+  }
+  .btn-primary.on-brand:hover {
+    background: var(--brand-text);
   }
   .btn-primary:active {
     transform: scale(0.97);

@@ -51,7 +51,7 @@ export function PortfolioGrid({
               type="button"
               aria-pressed={active === c.slug}
               onClick={() => choose(c.slug)}
-              className="min-h-11 rounded-full bg-surface-2 px-4 text-small text-ink transition-colors hover:bg-[#33291f] active:scale-[0.97] aria-pressed:bg-ink aria-pressed:text-bg"
+              className="min-h-11 rounded-full bg-surface-2 px-4 text-small text-ink transition-colors hover:bg-surface-hover active:scale-[0.97] aria-pressed:bg-ink aria-pressed:text-bg"
             >
               {c.name}
             </button>
