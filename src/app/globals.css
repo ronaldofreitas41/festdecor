@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/*
+ * Fest Decor — a sala escura.
+ * Um único chão quente, quase preto, como um salão à luz de velas.
+ * As fotografias são o que brilha; o dourado da chama aparece só na ação principal.
+ */
+:root {
+  --bg: #13100d;
+  --surface: #1d1813;
+  --surface-2: #272019;
+  --ink: #f1eee9;
+  --muted: #bfb7ac;
+  --accent: #e8b56c;
+  --accent-ink: #13100d;
+  --field: #e6e3de;
+  --field-ink: #17120e;
+  --field-muted: #574f46;
+
+  /* Painel administrativo: claro, neutro e silencioso. */
+  --a-bg: #f6f3ee;
+  --a-panel: #ffffff;
+  --a-ink: #1c1814;
+  --a-muted: #6b6157;
+  --a-line: #e4ddd3;
+  --a-accent: #7a4f12;
+  --a-accent-soft: #f4ead9;
+  --a-danger: #a3261b;
+  --a-danger-soft: #fbe9e6;
+  --a-ok: #276238;
+
+  --margin: clamp(1rem, 0.4rem + 2.2vw, 2rem);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-field: var(--field);
+  --color-field-ink: var(--field-ink);
+  --color-field-muted: var(--field-muted);
+
+  --color-a-bg: var(--a-bg);
+  --color-a-panel: var(--a-panel);
+  --color-a-ink: var(--a-ink);
+  --color-a-muted: var(--a-muted);
+  --color-a-line: var(--a-line);
+  --color-a-accent: var(--a-accent);
+  --color-a-accent-soft: var(--a-accent-soft);
+  --color-a-danger: var(--a-danger);
+  --color-a-danger-soft: var(--a-danger-soft);
+  --color-a-ok: var(--a-ok);
+
+  --font-serif: var(--font-erode), "Iowan Old Style", Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Cinco tamanhos fazem todo o trabalho visível. */
+  --text-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
+  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-head: clamp(2.125rem, 1.3rem + 3.2vw, 4rem);
+
+  --spacing-margin: var(--margin);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .admin :focus-visible {
+    outline-color: var(--a-accent);
+  }
+  img {
+    color: transparent;
+  }
+}
+
+@layer components {
+  /* Ação principal: o único sólido claro da página. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 48px;
+    padding: 0.7em 1.35em;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: var(--text-small);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition:
+      transform 180ms var(--ease-out),
+      background-color 180ms var(--ease-out);
+  }
+  .btn-primary:hover {
+    background: #f2c785;
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+  .link-quiet {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+    transition: text-decoration-color 160ms var(--ease-out);
+  }
+  .link-quiet:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Entradas: o conteúdo nunca fica escondido sem JavaScript. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    translate: 0 24px;
+    transition:
+      opacity 700ms var(--ease-out),
+      translate 900ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 80ms);
+  }
+  .js [data-reveal].is-in {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* O nome pesa: encolhe um pouco enquanto o primeiro ecrã sai. */
+  @supports (animation-timeline: scroll()) {
+    .wordmark-scale {
+      transform-origin: 0% 100%;
+      animation: wordmark-shrink linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+    @keyframes wordmark-shrink {
+      to {
+        scale: 0.93;
+        opacity: 0.55;
+      }
+    }
+  }
+
+  .drift {
+    animation: drift 24s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from {
+      scale: 1.04;
+      translate: 0 0;
+    }
+    to {
+      scale: 1.12;
+      translate: -1.5% -1%;
+    }
+  }
+}

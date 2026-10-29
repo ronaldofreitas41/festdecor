@@ -1,0 +1,21 @@
+import { Suspense } from "react";
+import { Reveal } from "@/components/site/reveal";
+import { SiteFooter } from "@/components/site/site-footer";
+
+export default function SiteLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <a
+        href="#conteudo"
+        className="sr-only z-50 bg-accent px-4 py-2 text-accent-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Pular para o conteúdo
+      </a>
+      {children}
+      <SiteFooter />
+      <Suspense>
+        <Reveal />
+      </Suspense>
+    </>
+  );
+}
