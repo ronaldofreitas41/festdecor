@@ -82,7 +82,7 @@ export default async function HomePage() {
 }
 
 /**
- * A abertura é a própria logo sobre o campo terracota. Atrás dela, o fundo 3D faz chover pétalas;
+ * A abertura é a própria logo sobre o campo terracota, na entrada da galeria de arcos do fundo 3D;
  * a foto do primeiro destaque fica num arco, como o "decor de eventos" da logo.
  */
 function Hero({ lead }: { lead?: PublicProject }) {
@@ -104,31 +104,7 @@ function Hero({ lead }: { lead?: PublicProject }) {
             </Link>
           </div>
         </div>
-        <figure className="w-full max-w-[34rem] justify-self-center px-[14px] lg:max-w-none lg:justify-self-end">
-          <div
-            style={
-              {
-                "--gilt": "var(--brand-ink)",
-                "--frame-r": "999px 999px 2.6rem 2.6rem",
-              } as React.CSSProperties
-            }
-            className="gilt"
-          >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[2rem] bg-brand-leaf shadow-[0_40px_80px_-30px_rgb(40_15_5/0.55)] lg:aspect-auto lg:h-[min(70vh,44rem)]">
-              {cover && (
-                <MediaImage image={cover} fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="drift object-cover" />
-              )}
-            </div>
-          </div>
-          {lead && (
-            <figcaption className="mt-7 text-small italic">
-              <Link href={`/portfolio/${lead.slug}`} className="link-quiet">
-                {lead.title}
-              </Link>
-              {lead.isDemo ? ", projeto de demonstração" : ""}
-            </figcaption>
-          )}
-        </figure>
+
       </div>
     </div>
   );
@@ -138,7 +114,7 @@ function yearOf(date: string | null) {
   return date ? date.slice(0, 4) : "";
 }
 
-/** Os destaques passam de lado, como convidados chegando; atrás deles, as pétalas viram guirlanda. */
+/** Os destaques passam de lado, como convidados chegando, enquanto a galeria do fundo segue em frente. */
 function Featured({ projects }: { projects: PublicProject[] }) {
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-4 px-margin">

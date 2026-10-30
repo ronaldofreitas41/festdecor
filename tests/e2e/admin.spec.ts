@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import postgres from "postgres";
 import sharp from "sharp";
+import "../../scripts/load-env";
 
 const EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@festdecor.local";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "teste-local-123";
@@ -24,6 +26,14 @@ async function login(page: Page) {
 }
 
 test.describe.configure({ mode: "serial" });
+
+// Um teste que falha no meio não chega à própria exclusão; sem isto, o projeto fica no topo dos destaques do site.
+test.afterAll(async () => {
+  const sql = postgres(process.env.DATABASE_URL!, { max: 1, prepare: process.env.DATABASE_PREPARE !== "false" });
+  await sql`delete from projects where title = ${TITLE}`;
+  await sql`delete from media where filename = ${UPLOAD_NAME} and id not in (select media_id from project_images)`;
+  await sql.end();
+});
 
 test("o painel exige autenticação no servidor", async ({ page, request, baseURL }) => {
   await page.goto("/admin/imagens");

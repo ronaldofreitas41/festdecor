@@ -33,6 +33,24 @@ const PROJECTS: {
   featured: boolean;
 }[] = [
   {
+    title: "Fonte de hortênsias",
+    slug: "fonte-de-hortensias",
+    category: null,
+    location: "",
+    summary: "Uma fonte coberta de hortênsias brancas: um elemento ressignificado pela personalidade do casal.",
+    description:
+      "Uma fonte, esculturas, pedras: elementos que poderiam aparecer em diferentes projetos ganham uma nova leitura quando escolhidos a partir da história de quem celebra. Criar uma festa com identidade é transformar referências em algo que tenha a cara de quem vive aquele dia.",
+    images: [
+      {
+        post: "https://www.instagram.com/p/DeNLVI1G-_k/",
+        width: 1066,
+        height: 1421,
+        alt: "Fonte de pedra em três níveis com uma cascata de hortênsias brancas descendo até o chão",
+      },
+    ],
+    featured: true,
+  },
+  {
     title: "Carol e Mateus",
     slug: "carol-e-mateus",
     category: "casamentos",

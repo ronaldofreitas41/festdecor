@@ -1,20 +1,34 @@
 import * as THREE from "three";
 
 /**
- * O fundo vivo do site, num único canvas fixo, em três camadas:
+ * O fundo vivo do site, num único canvas fixo. A rolagem é uma travessia: quem desce a página
+ * caminha para a frente por um salão, atravessando uma galeria de arcos. São quatro camadas:
  * 1. o campo de cor: creme, terracota ou café conforme a seção (`data-bg`). Onde uma seção encontra
  *    outra de cor diferente, a de baixo entra por cima como um tecido drapeado: borda em dobras,
  *    sombra sobre a de cima e brilho nas dobras. As dobras balançam com a velocidade da rolagem;
- * 2. luzes desfocadas (bokeh), subindo devagar, só sobre o terracota e o café;
- * 3. fitas de seda acetinada que mudam de lugar conforme a seção (`data-scene`): onda baixa na
+ * 2. a galeria: arcos de filete duplo dourado, a forma da logo, com cortinas de voil presas dos
+ *    lados. Eles vêm do fundo do salão, passam pela câmera e voltam ao fundo;
+ * 3. luzes desfocadas (bokeh) espalhadas pelo salão, passando em profundidade, só sobre o
+ *    terracota e o café;
+ * 4. fitas de seda acetinada que mudam de lugar conforme a seção (`data-scene`): onda baixa na
  *    abertura, faixa rente ao pé nos destaques e no Sobre, fios dourados no alto no processo e
  *    um drapeado de teto no orçamento e no contato.
- * A cor das fitas e das luzes depende do campo atrás delas, calculado no próprio shader.
+ * A cor de tudo depende do campo atrás, calculado no próprio shader. A rolagem rápida abre o campo
+ * de visão e fecha a vinheta, como um passo mais longo.
  */
 
 const MAX_SECTIONS = 12;
 const FOV = 40;
 const CAMERA_Z = 9;
+/** Quanto a câmera avança a cada altura de tela rolada. */
+const TRAVEL_PER_SCREEN = 7;
+/** Trecho do salão onde os arcos existem; ao sair pela frente, um arco volta ao fundo. */
+const HALL_FAR = -32;
+const HALL_NEAR = 7;
+const HALL_DEPTH = HALL_NEAR - HALL_FAR;
+const BOKEH_FAR = -24;
+const BOKEH_NEAR = 6.5;
+const BOKEH_DEPTH = BOKEH_NEAR - BOKEH_FAR;
 
 const FIELD_GLSL = /* glsl */ `
   uniform float uBounds[${MAX_SECTIONS}];
@@ -85,7 +99,7 @@ const BG_FRAG = /* glsl */ `
     float glow = smoothstep(0.85, 0.0, distance(uv * vec2(aspect, 1.0), c * vec2(aspect, 1.0)));
     col += (w.x * vec3(0.016, 0.012, 0.01) + w.y * vec3(0.07, 0.035, 0.015) + w.z * vec3(0.07, 0.04, 0.015)) * glow;
     // Vinheta: as bordas escurecem, mais no café, como luz de salão.
-    col *= 1.0 - smoothstep(0.55, 1.25, length((uv - 0.5) * vec2(1.25, 1.0))) * (0.08 + w.z * 0.32);
+    col *= 1.0 - smoothstep(0.55, 1.25, length((uv - 0.5) * vec2(1.25, 1.0))) * (0.08 + w.z * 0.32 + uWind * 0.16);
 
     // Luz de cortina: faixas largas e lentas, como sol atravessando voil.
     vec2 q = gl_FragCoord.xy / uDpr;
@@ -108,9 +122,115 @@ const BG_FRAG = /* glsl */ `
   }
 `;
 
+const HALL_GLSL = /* glsl */ `
+  attribute float aZ;
+  uniform float uTravel;
+  uniform float uHalfW;
+  uniform float uHalfH;
+  varying float vFade;
+
+  // Posição no salão: aparece aos poucos no fundo e some antes de encostar na câmera.
+  float hallZ() {
+    float z = mod(aZ + uTravel, ${HALL_DEPTH}.0) + (${HALL_FAR}.0);
+    vFade = smoothstep(${HALL_FAR}.0, ${HALL_FAR + 12}.0, z) * (1.0 - smoothstep(${HALL_NEAR - 3}.0, ${HALL_NEAR}.0, z));
+    return z;
+  }
+  float archRadius() { return max(uHalfW * 0.86, 2.3); }
+  float archFloor() { return -uHalfH * 1.25; }
+  float archSpring() { return uHalfH * 0.75; }
+`;
+
+const ARCH_VERT = /* glsl */ `
+  ${HALL_GLSL}
+  varying float vRise;
+
+  void main() {
+    const float PI = 3.14159265;
+    float z = hallZ();
+    float R = archRadius();
+    float leg = archSpring() - archFloor();
+    float d = position.x * (2.0 * leg + PI * R);
+    vec2 p;
+    vec2 n;
+    if (d < leg) {
+      p = vec2(-R, archFloor() + d);
+      n = vec2(-1.0, 0.0);
+    } else if (d < leg + PI * R) {
+      float a = PI - (d - leg) / R;
+      n = vec2(cos(a), sin(a));
+      p = vec2(0.0, archSpring()) + n * R;
+    } else {
+      p = vec2(R, archFloor() + 2.0 * leg + PI * R - d);
+      n = vec2(1.0, 0.0);
+    }
+    // O traço engrossa com a distância para não sumir no fundo do salão.
+    float w = (0.016 + (${HALL_NEAR}.0 - z) * 0.0014) * (1.0 - position.z * 2.0);
+    p += n * (position.z + position.y * w);
+    vRise = (p.y - archFloor()) / leg;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, z, 1.0);
+  }
+`;
+
+const ARCH_FRAG = /* glsl */ `
+  precision highp float;
+  ${FIELD_GLSL}
+  varying float vFade;
+  varying float vRise;
+
+  void main() {
+    float edge;
+    vec3 w = fieldAt(gl_FragCoord.xy, edge);
+    vec3 col = w.x * vec3(0.72, 0.55, 0.33) + w.y * vec3(0.96, 0.83, 0.68) + w.z * vec3(0.9, 0.74, 0.5);
+    // Discretos atrás do texto; a base se dissolve, como névoa no chão do salão.
+    float a = (w.x * 0.2 + w.y * 0.26 + w.z * 0.32) * smoothstep(0.02, 0.5, vRise);
+    gl_FragColor = vec4(col, a * vFade);
+  }
+`;
+
+const CURTAIN_VERT = /* glsl */ `
+  ${HALL_GLSL}
+  attribute float aSide;
+  uniform float uTime;
+  uniform float uWind;
+  varying vec2 vCloth;
+
+  void main() {
+    float z = hallZ();
+    float R = archRadius();
+    float u = position.x + 0.5;
+    float v = position.y + 0.5;
+    float x = R * (1.0 - 0.36 * u);
+    // O topo acompanha a curva do arco; a amarração recolhe o tecido junto à coluna.
+    float top = archSpring() + sqrt(max(R * R - x * x, 0.0));
+    float tie = 1.0 - 0.68 * exp(-pow((v - 0.3) / 0.2, 2.0));
+    x = R - (R - x) * tie;
+    float sway = sin(u * 8.0 + aZ + uTime * 0.3 + uTravel * 0.2) * (0.1 + uWind * 0.3) * u;
+    vCloth = vec2(u, v);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(x * aSide, mix(archFloor(), top, v), z + sway, 1.0);
+  }
+`;
+
+const CURTAIN_FRAG = /* glsl */ `
+  precision highp float;
+  ${FIELD_GLSL}
+  varying float vFade;
+  varying vec2 vCloth;
+
+  void main() {
+    float edge;
+    vec3 w = fieldAt(gl_FragCoord.xy, edge);
+    float fold = 0.5 + 0.5 * sin(vCloth.x * 46.0 + sin(vCloth.y * 3.0) * 1.6);
+    vec3 base = w.x * vec3(0.88, 0.76, 0.6) + w.y * vec3(0.98, 0.86, 0.74) + w.z * vec3(0.8, 0.6, 0.38);
+    float a = (w.x * 0.11 + w.y * 0.13 + w.z * 0.15) * (0.45 + 0.55 * fold) * (1.0 - smoothstep(0.55, 1.0, vCloth.x));
+    a *= smoothstep(0.0, 0.32, vCloth.y);
+    gl_FragColor = vec4(base * (0.84 + 0.24 * fold), a * vFade);
+  }
+`;
+
 const RIBBON_VERT = /* glsl */ `
   uniform float uTime;
   uniform float uWind;
+  uniform float uTravel;
   uniform float uHalfW;
   uniform float uHalfH;
   uniform vec4 uShape; // altura, amplitude, inclinação, curva (frações de uHalfH)
@@ -127,7 +247,8 @@ const RIBBON_VERT = /* glsl */ `
     float k = uIndex - (uRibbons - 1.0) * 0.5;
     float xn = u * 2.0 - 1.0;
     float x = xn * uHalfW * 1.4;
-    float t = uTime * (0.16 + uIndex * 0.035);
+    // A onda anda com o tempo e, mais depressa, com a rolagem: as fitas acompanham quem caminha.
+    float t = uTime * (0.16 + uIndex * 0.035) + uTravel * 0.09;
     float ph = uSeed * 6.2831;
     float y = (uShape.x + k * uForm.w + xn * uShape.z + uShape.w * (1.0 - xn * xn * 0.8)) * uHalfH;
     y += uShape.y * uHalfH * (sin(xn * 1.7 + t + ph) * 0.6 + sin(xn * 3.1 - t * 1.3 + ph * 0.5) * 0.4);
@@ -194,6 +315,7 @@ const RIBBON_FRAG = /* glsl */ `
 const BOKEH_VERT = /* glsl */ `
   attribute vec4 aSeed;
   uniform float uTime;
+  uniform float uTravel;
   uniform float uDpr;
   uniform float uHalfH;
   uniform float uScale;
@@ -201,12 +323,16 @@ const BOKEH_VERT = /* glsl */ `
 
   void main() {
     vec3 p = position;
-    float span = uHalfH * 2.8;
+    float span = uHalfH * 5.0;
     p.y = mod(p.y + uTime * 0.05 * (0.5 + aSeed.y) + span * 0.5, span) - span * 0.5;
     p.x += sin(uTime * 0.18 + aSeed.x * 6.2831) * 0.25;
+    // Cada luz tem a sua distância, então passa num ritmo próprio: é o que dá volume ao salão.
+    p.z = mod(p.z + uTravel * (0.75 + aSeed.w * 0.5), ${BOKEH_DEPTH.toFixed(1)}) + (${BOKEH_FAR.toFixed(1)});
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    gl_PointSize = (10.0 + aSeed.z * 34.0) * uScale * uDpr * (${CAMERA_Z}.0 / -mv.z);
-    vTwinkle = 0.75 + 0.25 * sin(uTime * (0.6 + aSeed.y) + aSeed.x * 20.0);
+    gl_PointSize = min((10.0 + aSeed.z * 34.0) * uScale * uDpr * (${CAMERA_Z}.0 / -mv.z), 150.0 * uDpr);
+    float fade = smoothstep(${BOKEH_FAR.toFixed(1)}, ${(BOKEH_FAR + 8).toFixed(1)}, p.z);
+    fade *= 1.0 - smoothstep(${(BOKEH_NEAR - 2.5).toFixed(1)}, ${BOKEH_NEAR.toFixed(1)}, p.z);
+    vTwinkle = (0.75 + 0.25 * sin(uTime * (0.6 + aSeed.y) + aSeed.x * 20.0)) * fade;
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -268,7 +394,8 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
   }
   const small = window.innerWidth < 768;
   const ribbonCount = small ? 2 : 3;
-  const bokehCount = small ? 45 : 110;
+  const bokehCount = small ? 60 : 150;
+  const archCount = small ? 6 : 8;
   let dpr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 1.75);
   renderer.setPixelRatio(dpr);
   renderer.autoClear = false;
@@ -281,6 +408,7 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
     uDpr: { value: dpr },
     uTime: { value: 0 },
     uWind: { value: 0 },
+    uTravel: { value: 0 },
     uHalfW: { value: 1 },
     uHalfH: { value: 1 },
   };
@@ -305,14 +433,70 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
   camera.position.set(0, 0, CAMERA_Z);
 
+  // Galeria de arcos: dois filetes (o de fora mais fino, como as molduras da página), repetidos ao longo do salão.
+  const ARCH_STEPS = 72;
+  const archPos: number[] = [];
+  const archIndex: number[] = [];
+  for (const [line, offset] of [0, 0.17].entries()) {
+    const start = line * (ARCH_STEPS + 1) * 2;
+    for (let i = 0; i <= ARCH_STEPS; i++) {
+      archPos.push(i / ARCH_STEPS, -1, offset, i / ARCH_STEPS, 1, offset);
+      if (i < ARCH_STEPS) {
+        const a = start + i * 2;
+        archIndex.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+    }
+  }
+  const archZ = Array.from({ length: archCount }, (_, i) => (i * HALL_DEPTH) / archCount);
+  const archGeo = new THREE.InstancedBufferGeometry();
+  archGeo.setAttribute("position", new THREE.Float32BufferAttribute(archPos, 3));
+  archGeo.setIndex(archIndex);
+  archGeo.setAttribute("aZ", new THREE.InstancedBufferAttribute(new Float32Array(archZ), 1));
+  archGeo.instanceCount = archCount;
+  const archMat = new THREE.ShaderMaterial({
+    vertexShader: ARCH_VERT,
+    fragmentShader: ARCH_FRAG,
+    uniforms: shared,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: THREE.DoubleSide,
+  });
+  const arches = new THREE.Mesh(archGeo, archMat);
+  arches.frustumCulled = false;
+  arches.renderOrder = -1;
+  scene.add(arches);
+
+  // Cortinas de voil, uma de cada lado de cada arco.
+  const curtainGeo = new THREE.InstancedBufferGeometry();
+  const curtainPlane = new THREE.PlaneGeometry(1, 1, 16, 24);
+  curtainGeo.setAttribute("position", curtainPlane.getAttribute("position"));
+  curtainGeo.setIndex(curtainPlane.getIndex());
+  curtainGeo.setAttribute("aZ", new THREE.InstancedBufferAttribute(new Float32Array(archZ.flatMap((z) => [z, z])), 1));
+  curtainGeo.setAttribute("aSide", new THREE.InstancedBufferAttribute(new Float32Array(archZ.flatMap(() => [-1, 1])), 1));
+  curtainGeo.instanceCount = archCount * 2;
+  const curtainMat = new THREE.ShaderMaterial({
+    vertexShader: CURTAIN_VERT,
+    fragmentShader: CURTAIN_FRAG,
+    uniforms: shared,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    side: THREE.DoubleSide,
+  });
+  const curtains = new THREE.Mesh(curtainGeo, curtainMat);
+  curtains.frustumCulled = false;
+  curtains.renderOrder = -2;
+  scene.add(curtains);
+
   // Luzes desfocadas
   const r = rng(384753);
   const bokehPos = new Float32Array(bokehCount * 3);
   const bokehSeed = new Float32Array(bokehCount * 4);
   for (let i = 0; i < bokehCount; i++) {
-    bokehPos[i * 3] = (r() * 2 - 1) * 9;
-    bokehPos[i * 3 + 1] = (r() * 2 - 1) * 6;
-    bokehPos[i * 3 + 2] = -7 + r() * 9;
+    bokehPos[i * 3] = (r() * 2 - 1) * 15;
+    bokehPos[i * 3 + 1] = (r() * 2 - 1) * 8;
+    bokehPos[i * 3 + 2] = r() * BOKEH_DEPTH;
     bokehSeed.set([r(), r(), Math.pow(r(), 2), r()], i * 4);
   }
   const bokehGeo = new THREE.BufferGeometry();
@@ -415,6 +599,7 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
   let mix = -1;
   let lastScroll = window.scrollY;
   let wind = 0;
+  let travel = (lastScroll / window.innerHeight) * TRAVEL_PER_SCREEN;
   let raf = 0;
   let last = performance.now();
   let time = 0;
@@ -470,16 +655,22 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
     lastScroll = scroll;
     wind += (Math.min(v / 2500, 1) - wind) * (1 - Math.exp(-dt * 3));
     shared.uWind.value = opts.reducedMotion ? 0 : wind;
+    // Um leve atraso sobre a rolagem: a câmera tem peso e assenta depois que a página para.
+    travel += ((scroll / window.innerHeight) * TRAVEL_PER_SCREEN - travel) * (1 - Math.exp(-dt * 5));
+    shared.uTravel.value = travel;
 
     pointer.lerp(pointerActive ? pointerTarget : origin, 1 - Math.exp(-dt * 4));
     bgMat.uniforms.uPointer.value.copy(pointer);
     if (pointerActive) ribbonShared.uPointerW.value.set(pointer.x * shared.uHalfW.value, pointer.y * shared.uHalfH.value);
     else ribbonShared.uPointerW.value.set(99, 99);
 
-    // A câmera se inclina com o ponteiro e com o avanço da página.
-    camera.position.x = pointer.x * 0.35 + Math.sin(mix * 0.9) * 0.3;
-    camera.position.y = pointer.y * 0.22;
-    camera.lookAt(0, 0, -1);
+    // A câmera faz uma curva suave pelo salão, inclina um pouco nela e abre o campo de visão ao acelerar.
+    camera.position.x = pointer.x * 0.35 + Math.sin(travel * 0.11) * 0.5;
+    camera.position.y = pointer.y * 0.22 + Math.sin(travel * 0.07) * 0.16;
+    camera.up.set(Math.sin(travel * 0.11 - 0.5) * 0.03, 1, 0);
+    camera.lookAt(Math.sin(travel * 0.11 - 0.5) * 0.55, 0, -1);
+    camera.fov = FOV + shared.uWind.value * 7;
+    camera.updateProjectionMatrix();
 
     renderer.clear();
     renderer.render(bgScene, bgCam);
@@ -495,6 +686,11 @@ export function startScene(canvas: HTMLCanvasElement, opts: { reducedMotion: boo
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("resize", onResize);
+      archGeo.dispose();
+      archMat.dispose();
+      curtainPlane.dispose();
+      curtainGeo.dispose();
+      curtainMat.dispose();
       ribbonGeo.dispose();
       ribbonMats.forEach((m) => m.dispose());
       bokehGeo.dispose();
