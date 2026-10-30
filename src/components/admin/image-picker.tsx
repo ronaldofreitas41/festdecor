@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { uploadImage } from "./upload";
 import { cx, ui } from "./ui";
 
-export type PickerMedia = { id: string; filename: string; alt: string; width: number; height: number };
+/** `external`: imagem de um post do Instagram (carregada direto de lá). */
+export type PickerMedia = { id: string; filename: string; alt: string; width: number; height: number; external?: boolean };
 
 /**
  * Imagens do projeto, em ordem (a primeira é a capa). Permite enviar novas
@@ -74,7 +75,7 @@ export function ImagePicker({
           {selected.map((m, i) => (
             <li key={m.id} className="overflow-hidden rounded-md bg-a-panel ring-1 ring-a-line">
               <div className="relative aspect-[4/3] bg-a-bg">
-                <Image src={`/media/${m.id}`} alt={m.alt} fill sizes="240px" className="object-cover" />
+                <Image src={`/media/${m.id}`} alt={m.alt} fill sizes="240px" unoptimized={m.external} className="object-cover" />
                 {i === 0 && (
                   <span className="absolute top-2 left-2 rounded bg-a-ink px-1.5 py-0.5 text-[12px] font-medium text-white">Capa</span>
                 )}
@@ -157,7 +158,7 @@ export function ImagePicker({
                     )}
                   >
                     <span className="relative block aspect-[4/3] bg-a-bg">
-                      <Image src={`/media/${m.id}`} alt={m.alt} fill sizes="220px" className="object-cover" />
+                      <Image src={`/media/${m.id}`} alt={m.alt} fill sizes="220px" unoptimized={m.external} className="object-cover" />
                     </span>
                     <span className="block truncate px-2 py-1.5 text-[13px]">{on ? "Selecionada" : m.filename}</span>
                   </button>

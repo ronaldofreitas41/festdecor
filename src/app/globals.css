@@ -20,6 +20,12 @@
   --brand-ink: #f4d3b4;
   --brand-text: #fbeadb;
   --brand-leaf: #a85a36;
+  /* O salão à noite: café quase preto, com champanhe para os detalhes. */
+  --noir: #23130c;
+  --noir-ink: #e2c490;
+  --noir-text: #f3e6d6;
+  /* Fio dourado para molduras e detalhes finos sobre o creme. */
+  --gold: #b48a58;
   /* Texto sobre fotografia escurecida. */
   --on-photo: #fbf3ea;
 
@@ -53,6 +59,10 @@
   --color-brand-text: var(--brand-text);
   --color-brand-leaf: var(--brand-leaf);
   --color-on-photo: var(--on-photo);
+  --color-noir: var(--noir);
+  --color-noir-ink: var(--noir-ink);
+  --color-noir-text: var(--noir-text);
+  --color-gold: var(--gold);
 
   --color-a-bg: var(--a-bg);
   --color-a-panel: var(--a-panel);
@@ -73,7 +83,7 @@
   --text-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
   --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --text-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
-  --text-head: clamp(2.125rem, 1.3rem + 3.2vw, 4rem);
+  --text-head: clamp(2.375rem, 1.3rem + 3.9vw, 4.75rem);
 
   --spacing-margin: var(--margin);
 }
@@ -95,10 +105,15 @@
   h1,
   h2,
   h3 {
-    font-weight: 500;
-    letter-spacing: -0.025em;
+    font-weight: 400;
+    letter-spacing: -0.03em;
     line-height: 0.98;
     text-wrap: balance;
+  }
+  h2 em,
+  h3 em {
+    font-style: italic;
+    letter-spacing: -0.02em;
   }
   p {
     text-wrap: pretty;
@@ -126,16 +141,30 @@
     align-items: center;
     gap: 0.6em;
     min-height: 48px;
-    padding: 0.7em 1.5em;
+    padding: 0.85em 1.9em;
     border-radius: 999px;
     background: var(--accent);
     color: var(--accent-ink);
-    font-size: var(--text-small);
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    font-family: var(--font-brand);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
     transition:
       transform 180ms var(--ease-out),
-      background-color 180ms var(--ease-out);
+      background-color 300ms var(--ease-out),
+      letter-spacing 400ms var(--ease-out);
+  }
+  .btn-primary:hover {
+    letter-spacing: 0.24em;
+  }
+  /* Rótulos curtos em caixa alta: navegação, legendas, números. */
+  .caps {
+    font-family: var(--font-brand);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
   }
   .btn-primary:hover {
     background: var(--accent-hover);
@@ -148,8 +177,32 @@
   .btn-primary.on-brand:hover {
     background: var(--brand-text);
   }
+  .btn-primary.on-noir {
+    background: var(--noir-ink);
+    color: var(--noir);
+  }
+  .btn-primary.on-noir:hover {
+    background: var(--noir-text);
+  }
   .btn-primary:active {
     transform: scale(0.97);
+  }
+  /*
+   * Moldura de fio dourado deslocada atrás da fotografia, como passe-partout.
+   * O elemento precisa de position: relative e do mesmo arredondamento na variável --frame-r.
+   */
+  .gilt {
+    position: relative;
+    isolation: isolate;
+  }
+  .gilt::before {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    z-index: -1;
+    border: 1px solid color-mix(in srgb, var(--gilt, var(--gold)) 75%, transparent);
+    border-radius: var(--frame-r, 2.4rem);
+    pointer-events: none;
   }
   .link-quiet {
     text-decoration: underline;
@@ -169,6 +222,18 @@
  */
 .has-scene [data-bg] {
   background-color: transparent;
+}
+
+/* Rolagem suave (Lenis): o mínimo do CSS da própria biblioteca. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
 }
 
 /* Frases que acendem palavra por palavra enquanto passam pela tela. */

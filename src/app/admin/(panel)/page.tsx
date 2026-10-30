@@ -14,7 +14,15 @@ export default async function AdminProjectsPage() {
   const featured = projects
     .filter((p) => p.featured)
     .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
-    .map(({ id, title, slug, category, coverId, published }) => ({ id, title, slug, category, coverId, published }));
+    .map(({ id, title, slug, category, coverId, coverExternal, published }) => ({
+      id,
+      title,
+      slug,
+      category,
+      coverId,
+      coverExternal,
+      published,
+    }));
   const rows = projects.map((p) => ({ ...p, updatedAt: p.updatedAt.toISOString() }));
   const demoCount = projects.filter((p) => p.isDemo).length;
 

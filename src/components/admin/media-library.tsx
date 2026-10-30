@@ -18,6 +18,7 @@ export type LibraryItem = {
   alt: string;
   credit: string | null;
   usage: number;
+  external?: boolean;
 };
 
 function formatSize(bytes: number) {
@@ -85,7 +86,14 @@ function MediaCard({ item }: { item: LibraryItem }) {
   return (
     <li className={cx(ui.panel, "overflow-hidden")}>
       <div className="relative aspect-[4/3] bg-a-bg">
-        <Image src={`/media/${item.id}`} alt={item.alt} fill sizes="(min-width: 1024px) 260px, 50vw" className="object-cover" />
+        <Image
+          src={`/media/${item.id}`}
+          alt={item.alt}
+          fill
+          sizes="(min-width: 1024px) 260px, 50vw"
+          unoptimized={item.external}
+          className="object-cover"
+        />
       </div>
       <form
         onSubmit={(e) => {
@@ -97,7 +105,7 @@ function MediaCard({ item }: { item: LibraryItem }) {
       >
         <input type="hidden" name="id" value={item.id} />
         <p className="truncate text-[13px] text-a-muted" title={item.filename}>
-          {item.filename} · {item.width}×{item.height} · {formatSize(item.size)}
+          {item.filename} · {item.width}×{item.height} · {item.external ? "Instagram" : formatSize(item.size)}
         </p>
         <div>
           <label htmlFor={`alt-${item.id}`} className="text-[13px] font-medium">

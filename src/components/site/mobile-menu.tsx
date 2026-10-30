@@ -13,7 +13,7 @@ export function MobileMenu({ items, className = "" }: { items: { href: string; l
       <button
         type="button"
         onClick={() => ref.current?.showModal()}
-        className="min-h-11 px-1 text-small"
+        className="caps min-h-11 px-1"
         aria-haspopup="dialog"
       >
         Menu
@@ -27,7 +27,7 @@ export function MobileMenu({ items, className = "" }: { items: { href: string; l
           <Link href="/" onClick={close} aria-label="Fest Decor, página inicial" className="text-brand-ink">
             <BrandLogo id="logo-menu" title="Fest Decor" className="h-14 w-auto" />
           </Link>
-          <button type="button" onClick={close} className="min-h-11 px-1 text-small">
+          <button type="button" onClick={close} className="caps min-h-11 px-1">
             Fechar
           </button>
         </div>
@@ -37,7 +37,7 @@ export function MobileMenu({ items, className = "" }: { items: { href: string; l
               key={item.href}
               href={item.href}
               onClick={close}
-              className="py-1 text-[2.5rem] leading-tight font-medium tracking-[-0.025em]"
+              className="py-1 text-[2.5rem] leading-tight tracking-[-0.025em]"
             >
               {item.label}
             </Link>

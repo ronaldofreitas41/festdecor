@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   serverExternalPackages: ["sharp"],
   images: {
-    localPatterns: [{ pathname: "/media/**" }, { pathname: "/img/**" }],
+    localPatterns: [{ pathname: "/media/**" }],
     qualities: [70, 80],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 31536000,

@@ -15,6 +15,7 @@ export type ProjectRow = {
   isDemo: boolean;
   category: string | null;
   coverId: string | null;
+  coverExternal: boolean;
   imageCount: number;
   updatedAt: string;
 };
@@ -49,7 +50,7 @@ export function ProjectsTable({ rows }: { rows: ProjectRow[] }) {
         <li key={row.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 sm:flex-nowrap sm:px-4">
           <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded bg-a-bg">
             {row.coverId ? (
-              <Image src={`/media/${row.coverId}`} alt="" fill sizes="80px" className="object-cover" />
+              <Image src={`/media/${row.coverId}`} alt="" fill sizes="80px" unoptimized={row.coverExternal} className="object-cover" />
             ) : (
               <span className="grid h-full place-items-center text-[11px] text-a-muted">sem foto</span>
             )}

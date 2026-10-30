@@ -7,7 +7,10 @@ import { reorderFeatured, setFeatured } from "@/app/admin/actions";
 import { useAction } from "./confirm-dialog";
 import { cx, ui } from "./ui";
 
-export type FeaturedItem = { id: string; title: string; slug: string; category: string | null; coverId: string | null; published: boolean };
+export type FeaturedItem = { id: string; title: string; slug: string; category: string | null; coverId: string | null;
+  coverExternal: boolean;
+  published: boolean;
+};
 
 /** Ordem dos destaques: o primeiro também é a foto de abertura do site. */
 export function FeaturedManager({ items }: { items: FeaturedItem[] }) {
@@ -52,7 +55,7 @@ export function FeaturedManager({ items }: { items: FeaturedItem[] }) {
             {i + 1}
           </span>
           <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded bg-a-bg">
-            {item.coverId && <Image src={`/media/${item.coverId}`} alt="" fill sizes="64px" className="object-cover" />}
+            {item.coverId && <Image src={`/media/${item.coverId}`} alt="" fill sizes="64px" unoptimized={item.coverExternal} className="object-cover" />}
           </div>
           <div className="min-w-0 flex-1">
             <Link href={`/admin/projetos/${item.id}`} className="line-clamp-2 font-medium hover:underline sm:block sm:truncate">

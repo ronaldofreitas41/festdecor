@@ -8,9 +8,9 @@ export async function SiteFooter() {
   const year = new Date().getFullYear();
   return (
     <footer data-bg="cream" data-scene="3" className="bg-bg px-margin pt-[20svh] pb-6 md:pt-[30svh]">
-      <div className="flex flex-col gap-2 text-small text-muted lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-baseline lg:gap-6">
-        <p>Fest Decor, decoração de eventos em Belo Horizonte</p>
-        <nav aria-label="Rodapé" className="flex flex-wrap gap-x-6 gap-y-1 text-ink">
+      <div className="flex flex-col gap-3 text-small text-muted lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-baseline lg:gap-6">
+        <p className="italic">Fest Decor, decoração de eventos em Belo Horizonte</p>
+        <nav aria-label="Rodapé" className="caps flex flex-wrap gap-x-7 gap-y-2 text-ink">
           <Link href="/portfolio" className="link-quiet">
             Portfólio
           </Link>
@@ -24,7 +24,7 @@ export async function SiteFooter() {
             Acesso da equipe
           </Link>
         </nav>
-        <p className="lg:text-right">© {year} Fest Decor</p>
+        <p className="caps lg:text-right">© {year} Fest Decor</p>
       </div>
     </footer>
   );

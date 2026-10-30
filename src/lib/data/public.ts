@@ -6,7 +6,8 @@ import type { ContactSettings } from "@/lib/contact";
 
 export const TAGS = { projects: "projects", settings: "settings" } as const;
 
-export type PublicImage = { id: string; width: number; height: number; alt: string; credit: string | null };
+/** `external`: imagem de um post do Instagram, carregada direto de lá (sem otimização local). */
+export type PublicImage = { id: string; width: number; height: number; alt: string; credit: string | null; external: boolean };
 
 export type PublicProject = {
   id: string;
@@ -44,7 +45,15 @@ async function loadProjects(where: SQL | undefined, orderBy: SQL[]): Promise<Pub
   if (rows.length === 0) return [];
 
   const images = await db
-    .select({ projectId: pi.projectId, id: m.id, width: m.width, height: m.height, alt: m.alt, credit: m.credit })
+    .select({
+      projectId: pi.projectId,
+      id: m.id,
+      width: m.width,
+      height: m.height,
+      alt: m.alt,
+      credit: m.credit,
+      external: sql<boolean>`${m.sourceUrl} is not null`,
+    })
     .from(pi)
     .innerJoin(m, eq(m.id, pi.mediaId))
     .where(inArray(pi.projectId, rows.map((r) => r.id)))
@@ -53,7 +62,9 @@ async function loadProjects(where: SQL | undefined, orderBy: SQL[]): Promise<Pub
   return rows.map(({ categoryName, categorySlug, ...r }) => ({
     ...r,
     category: categoryName && categorySlug ? { name: categoryName, slug: categorySlug } : null,
-    images: images.filter((i) => i.projectId === r.id).map((i) => ({ id: i.id, width: i.width, height: i.height, alt: i.alt, credit: i.credit })),
+    images: images
+      .filter((i) => i.projectId === r.id)
+      .map((i) => ({ id: i.id, width: i.width, height: i.height, alt: i.alt, credit: i.credit, external: i.external })),
   }));
 }
 

@@ -1,9 +1,19 @@
-import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import sharp from "sharp";
 
 const EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@festdecor.local";
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "teste-local-123";
 const TITLE = `Projeto E2E ${Date.now()}`;
+const UPLOAD_NAME = "e2e-upload.jpg";
+
+/** Uma foto de teste gerada na hora, para o repositório não precisar guardar imagens. */
+async function testPhoto() {
+  const buffer = await sharp({ create: { width: 1200, height: 900, channels: 3, background: "#9b5030" } })
+    .composite([{ input: Buffer.from('<svg width="1200" height="900"><circle cx="600" cy="450" r="300" fill="#f4d3b4"/></svg>') }])
+    .jpeg()
+    .toBuffer();
+  return { name: UPLOAD_NAME, mimeType: "image/jpeg", buffer };
+}
 
 async function login(page: Page) {
   await page.goto("/admin/login");
@@ -58,7 +68,7 @@ test("criar, destacar, reordenar, refletir no site e excluir um projeto", async 
   await page.getByLabel("Descrição curta").fill("Projeto criado pelo teste de ponta a ponta.");
   await page.getByLabel("Categoria").selectOption({ label: "Casamentos" });
   await page.getByLabel("Local", { exact: true }).fill("Belo Horizonte, MG");
-  await page.locator('input[type="file"]').setInputFiles(path.join(process.cwd(), "public/img/copo-de-leite.jpg"));
+  await page.locator('input[type="file"]').setInputFiles(await testPhoto());
   await expect(page.getByText("Capa", { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByLabel("Destaque na página inicial").check();
   await page.getByRole("button", { name: "Criar projeto" }).click();
@@ -87,7 +97,9 @@ test("criar, destacar, reordenar, refletir no site e excluir um projeto", async 
 
   // Filtro do portfólio e página do projeto
   await page.goto("/portfolio?categoria=casamentos");
-  await expect(page.getByRole("button", { name: "Casamentos" })).toHaveAttribute("aria-pressed", "true");
+  // Os botões só aparecem com duas ou mais categorias em uso; o filtro pelo endereço vale sempre.
+  const filterButton = page.getByRole("button", { name: "Casamentos" });
+  if (await filterButton.count()) await expect(filterButton).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("link", { name: TITLE }).click();
   await expect(page.getByRole("heading", { level: 1, name: TITLE })).toBeVisible();
 
@@ -115,7 +127,7 @@ test("criar, destacar, reordenar, refletir no site e excluir um projeto", async 
 
   // A imagem enviada ficou na biblioteca, sem uso, e pode ser excluída
   await page.goto("/admin/imagens");
-  const card = page.locator("li", { hasText: "copo-de-leite.jpg" }).first();
+  const card = page.locator("li", { hasText: UPLOAD_NAME }).first();
   await card.getByRole("button", { name: "Excluir" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Excluir imagem" }).click();
   await expect(page.getByText("Imagem excluída.")).toBeVisible();

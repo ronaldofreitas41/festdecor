@@ -4,7 +4,7 @@ Site da Fest Decor (decoração, cenografia e flores para eventos em Belo Horizo
 
 - **Next.js 16** (App Router, Cache Components, Server Components e Server Actions), **TypeScript**, **Tailwind CSS 4**
 - **PostgreSQL** com **Drizzle ORM** (migrações SQL versionadas em `drizzle/`)
-- Imagens guardadas no próprio banco (convertidas para WebP com `sharp`) e servidas por `/media/[id]` com cache permanente, otimizadas pelo `next/image`
+- Imagens servidas por `/media/[id]`: as fotos dos posts do Instagram são carregadas direto do Instagram (o banco guarda só o link do post); as enviadas pelo painel ficam no banco (WebP com `sharp`), com cache permanente e otimizadas pelo `next/image`
 - Autenticação própria: senha com `scrypt`, sessão em cookie `httpOnly` com token aleatório (só o hash SHA-256 fica no banco), limite de tentativas por e-mail e por IP
 
 ## Rodando localmente
@@ -16,7 +16,7 @@ npm install
 cp .env.example .env              # ajuste se não usar o Docker
 docker compose up -d              # PostgreSQL em localhost:5432
 npm run db:migrate                # cria as tabelas
-npm run db:seed                   # categorias, configurações e projetos de demonstração
+npm run db:seed                   # categorias, configurações e os projetos com fotos do Instagram
 ADMIN_PASSWORD='uma-senha-forte' npm run admin:create -- --email voce@exemplo.com --name "Seu nome"
 npm run dev                       # http://localhost:3000  ·  painel em /admin
 ```
@@ -61,15 +61,15 @@ Toda alteração é validada no servidor (Zod), exige sessão válida em cada ac
 - Login: 5 falhas por e-mail ou 20 por IP em 15 minutos bloqueiam novas tentativas; resposta com tempo constante para e-mails inexistentes.
 - Cabeçalhos: `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `noindex` no painel.
 
-## Conteúdo de demonstração
+## Conteúdo inicial: fotos do Instagram
 
-O seed cria **8 projetos marcados como demonstração**, com fotos de terceiros sob licenças Creative Commons (Wikimedia Commons). Eles aparecem no site com o aviso "projeto de demonstração" e o crédito da foto, e o painel lembra de substituí-los. Antes de divulgar o site:
+O seed cria **6 projetos** a partir de posts do Instagram @festdecorbhmg (`scripts/seed.ts`). Os textos resumem as legendas; categoria e data ficam em branco quando a legenda não diz, e devem ser completadas no painel. `npm run db:seed -- --reset` também apaga projetos antigos marcados como demonstração.
 
-1. Crie os projetos reais com fotos da Fest Decor (ou edite os de demonstração, troque as fotos e desmarque "Conteúdo de demonstração").
-2. Exclua os de demonstração que sobrarem (`npm run db:seed -- --reset` remove todos os de demonstração e os recria; use só em desenvolvimento).
-3. As fotos fixas do site (seção Sobre e "Do primeiro encontro à festa", em `public/img/`) também são ilustrativas; substitua os arquivos mantendo os nomes e atualize `src/app/(site)/creditos/page.tsx`.
+**Nenhuma foto fica no repositório nem no banco.** Cada imagem é uma linha em `media` com `source_url` (o link do post, `https://www.instagram.com/p/…/`). Os endereços de imagem do Instagram são assinados e vencem em poucos dias, então `/media/[id]` lê o endereço atual na página pública de incorporação do post (`src/lib/media/instagram.ts`, renovado a cada 6 horas) e redireciona o navegador para ele. A imagem vai do Instagram direto para o navegador, sem passar pelo otimizador do Next.
 
-Créditos completos em `/creditos` e em `seed/images/credits.json`.
+- Se o post for apagado ou arquivado no Instagram, a imagem some do site: troque-a no painel.
+- Isso depende da página de incorporação pública do Instagram; se ela mudar de formato, as fotos param de carregar até `instagram.ts` ser ajustado. Para não depender disso, envie as fotos pelo painel.
+- O Sobre e "Do primeiro encontro à festa" usam as fotos dos projetos publicados (sem repetir a da abertura).
 
 ## Testes e verificações
 
@@ -126,7 +126,6 @@ src/
   lib/validation.ts    schemas Zod
 scripts/               migrate, seed, create-admin
 drizzle/               migrações SQL
-seed/images/           fotos de demonstração + créditos
 tests/unit | tests/e2e
 ```
 
@@ -134,8 +133,10 @@ Para alterar o banco: edite `src/db/schema.ts`, rode `npm run db:generate` e dep
 
 ## Decisões
 
-- **Imagens no PostgreSQL** em vez de um storage externo: um único serviço para configurar, backup único e funciona em qualquer hospedagem. As imagens já entram otimizadas (WebP, até 2400px) e são servidas com cache imutável e redimensionadas pelo `next/image`. Para milhares de fotos, a troca para S3/R2 fica restrita a `api/admin/media` e `media/[id]`.
+- **Fotos do Instagram por link**: a pedido da Fest Decor, as fotos já publicadas no Instagram não são copiadas; veja "Conteúdo inicial".
+- **Imagens enviadas no PostgreSQL** em vez de um storage externo: um único serviço para configurar, backup único e funciona em qualquer hospedagem. As imagens já entram otimizadas (WebP, até 2400px) e são servidas com cache imutável e redimensionadas pelo `next/image`. Para milhares de fotos, a troca para S3/R2 fica restrita a `api/admin/media` e `media/[id]`.
 - **Auth própria e pequena** em vez de um provedor: só há administradoras criadas por script; não há cadastro, OAuth nem e-mail de recuperação para manter.
 - **Visual**: guiado pela logo da Fest Decor. O terracota do fundo da logo é o campo da marca (abertura, convite do orçamento, contato e botões), o creme-pêssego das letras é a cor da logo e, clareado, o chão do site; as folhas tom sobre tom vêm do fundo da logo. A abertura da home é a própria logo, redesenhada em vetor (`src/components/site/brand-logo.tsx`, com Quicksand no "decor de eventos" e Erode nos textos). Para usar o arquivo original da logo, coloque-o em `public/brand/` e troque o SVG nesse componente. O pedido de orçamento monta a mensagem como um convite e abre direto no WhatsApp configurado.
-- **Fundo animado (Three.js)**: um canvas fixo atrás de todo o site (`src/components/site/scene/`). Milhares de pétalas e folhas mudam de forma conforme a seção na tela: chuva de pétalas na abertura, guirlanda nos destaques e no Sobre, varal de luzes no processo e arco de flores no orçamento e no contato. O próprio fundo pinta a cor de cada seção (terracota ou creme), com a borda ondulando. As pétalas reagem ao mouse e à velocidade da rolagem. Cada seção declara `data-bg` (`brand` ou `cream`) e `data-scene` (0 a 3). O fundo carrega depois do conteúdo e não roda com "reduzir movimento" nem sem WebGL; nesses casos as seções mantêm as próprias cores. No celular, usa menos pétalas e menor resolução.
+- **Fundo animado (Three.js)**: um canvas fixo atrás de todo o site (`src/components/site/scene/engine.ts`). Fitas de seda acetinada mudam de lugar conforme a seção na tela: onda baixa na abertura, faixa rente ao pé nos destaques e no Sobre, fios dourados no alto do processo e um drapeado de teto no orçamento e no contato. Entre uma cena e outra, as fitas torcem e ondulam. Por trás, luzes desfocadas (bokeh) sobem devagar. O próprio fundo pinta a cor de cada seção (creme, terracota ou café). Onde a cor muda, a seção de baixo entra como um tecido drapeado, com dobras, sombra e brilho, e as dobras balançam com a velocidade da rolagem. As fitas se levantam perto do mouse. Cada seção declara `data-bg` (`cream`, `brand` ou `noir`) e `data-scene` (0 a 3). O fundo carrega depois do conteúdo e não roda com "reduzir movimento" nem sem WebGL; nesses casos as seções mantêm as próprias cores. No celular, usa menos pétalas e menor resolução.
+- **Acabamento**: títulos em Erode regular com itálico nas palavras de ênfase; navegação, botões e legendas em caixa alta espaçada (Quicksand, classe `caps`); molduras de fio dourado deslocadas atrás das fotos (classe `gilt`); a seção do processo é o "salão à noite", em café (`data-bg="noir"`) com detalhes champanhe. No computador, a rolagem tem inércia suave (Lenis, `smooth-scroll.tsx`), desligada no toque e com "reduzir movimento".
 - **Destaques em trilho horizontal**: no computador, a seção fica presa na tela e a rolagem desliza os cartões para o lado (`featured-rail.tsx`). No celular, é um carrossel de arrastar.

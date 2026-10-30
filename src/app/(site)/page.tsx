@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BrandLogo } from "@/components/site/brand-logo";
 import { FeaturedRail } from "@/components/site/featured-rail";
@@ -6,17 +5,26 @@ import { MediaImage } from "@/components/site/media-image";
 import { QuoteComposer } from "@/components/site/quote-composer";
 import { SiteHeader } from "@/components/site/site-header";
 import { formatPhone, instagramLink, whatsappLink } from "@/lib/contact";
-import { getEventTypes, getFeaturedProjects, getSiteSettings, type PublicProject } from "@/lib/data/public";
+import {
+  getEventTypes,
+  getFeaturedProjects,
+  getPublishedProjects,
+  getSiteSettings,
+  type PublicImage,
+  type PublicProject,
+} from "@/lib/data/public";
 import { SITE } from "@/lib/site";
 
-import fotoCopoDeLeite from "../../../public/img/copo-de-leite.jpg";
-import fotoProjeto from "../../../public/img/processo-projeto.jpg";
-import fotoMontagem from "../../../public/img/processo-montagem.jpg";
-import fotoEvento from "../../../public/img/processo-evento.jpg";
-
 export default async function HomePage() {
-  const [featured, settings, eventTypes] = await Promise.all([getFeaturedProjects(), getSiteSettings(), getEventTypes()]);
+  const [featured, published, settings, eventTypes] = await Promise.all([
+    getFeaturedProjects(),
+    getPublishedProjects(),
+    getSiteSettings(),
+    getEventTypes(),
+  ]);
   const lead = featured[0];
+  // O Sobre e o processo usam as fotos dos projetos (vindas do Instagram ou do painel), sem repetir a da abertura.
+  const [aboutImage, ...stageImages] = published.flatMap((p) => p.images).filter((i) => i.id !== lead?.images[0]?.id);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -25,23 +33,39 @@ export default async function HomePage() {
     description: SITE.description,
     url: SITE.url,
     areaServed: "Belo Horizonte e região",
-    address: { "@type": "PostalAddress", addressLocality: "Belo Horizonte", addressRegion: "MG", addressCountry: "BR" },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Belo Horizonte",
+      addressRegion: "MG",
+      addressCountry: "BR",
+    },
     sameAs: [instagramLink(settings.instagram)].filter(Boolean),
     ...(settings.whatsapp ? { telephone: `+${settings.whatsapp}` } : {}),
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Hero lead={lead} />
       <main id="conteudo">
         <Featured projects={featured} />
-        <About />
-        <Process />
-        <section id="orcamento" data-bg="cream" data-scene="3" aria-labelledby="orcamento-titulo" className="scroll-mt-6 bg-bg px-margin pt-[clamp(7rem,14vw,13rem)]">
+        <About image={aboutImage} />
+        <Process images={stageImages} />
+        <section
+          id="orcamento"
+          data-bg="cream"
+          data-scene="3"
+          aria-labelledby="orcamento-titulo"
+          className="scroll-mt-6 bg-bg px-margin pt-[clamp(7rem,14vw,13rem)]"
+        >
           <div className="max-w-[38rem]">
             <h2 id="orcamento-titulo" data-reveal className="text-head">
-              Peça seu orçamento
+              Peça seu <em>orçamento</em>
             </h2>
             <p data-reveal style={{ "--i": 1 } as React.CSSProperties} className="mt-6 text-lead text-muted">
               Escolha o tipo de festa, o mês e o tamanho. A mensagem fica pronta para você enviar.
@@ -73,23 +97,31 @@ function Hero({ lead }: { lead?: PublicProject }) {
           </h1>
           <div className="flex flex-col items-start gap-6">
             <p data-reveal className="max-w-[28rem] text-lead leading-snug">
-              Decoração, cenografia e flores para casamentos, 15 anos e eventos em Belo Horizonte.
+              Decoração, cenografia e flores para <em>casamentos, 15 anos e eventos</em> em Belo Horizonte.
             </p>
             <Link href="#orcamento" data-reveal style={{ "--i": 1 } as React.CSSProperties} className="btn-primary on-brand">
               Pedir orçamento
             </Link>
           </div>
         </div>
-        <figure className="w-full max-w-[34rem] justify-self-center lg:max-w-none lg:justify-self-end">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[2rem] bg-brand-leaf shadow-[0_40px_80px_-30px_rgb(40_15_5/0.55)] lg:aspect-auto lg:h-[min(74vh,46rem)]">
-            {cover ? (
-              <MediaImage image={cover} fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="drift object-cover" />
-            ) : (
-              <Image src={fotoCopoDeLeite} alt="" fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
-            )}
+        <figure className="w-full max-w-[34rem] justify-self-center px-[14px] lg:max-w-none lg:justify-self-end">
+          <div
+            style={
+              {
+                "--gilt": "var(--brand-ink)",
+                "--frame-r": "999px 999px 2.6rem 2.6rem",
+              } as React.CSSProperties
+            }
+            className="gilt"
+          >
+            <div className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[2rem] bg-brand-leaf shadow-[0_40px_80px_-30px_rgb(40_15_5/0.55)] lg:aspect-auto lg:h-[min(70vh,44rem)]">
+              {cover && (
+                <MediaImage image={cover} fill preload sizes="(min-width: 1024px) 40vw, 100vw" className="drift object-cover" />
+              )}
+            </div>
           </div>
           {lead && (
-            <figcaption className="mt-3 text-small">
+            <figcaption className="mt-7 text-small italic">
               <Link href={`/portfolio/${lead.slug}`} className="link-quiet">
                 {lead.title}
               </Link>
@@ -111,15 +143,21 @@ function Featured({ projects }: { projects: PublicProject[] }) {
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-4 px-margin">
       <h2 id="destaques-titulo" data-reveal className="text-head">
-        Projetos em destaque
+        Projetos em <em>destaque</em>
       </h2>
-      <Link href="/portfolio" data-reveal className="link-quiet text-small">
+      <Link href="/portfolio" data-reveal className="link-quiet caps">
         Ver o portfólio completo
       </Link>
     </div>
   );
   return (
-    <section id="destaques" data-bg="cream" data-scene="1" aria-labelledby="destaques-titulo" className="scroll-mt-0 bg-bg pt-[clamp(5rem,10vw,9rem)]">
+    <section
+      id="destaques"
+      data-bg="cream"
+      data-scene="1"
+      aria-labelledby="destaques-titulo"
+      className="scroll-mt-0 bg-bg pt-[clamp(5rem,10vw,9rem)]"
+    >
       {projects.length === 0 ? (
         <>
           {header}
@@ -142,21 +180,21 @@ function Featured({ projects }: { projects: PublicProject[] }) {
                         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
-                    <span className="absolute top-4 left-4 rounded-full bg-bg/85 px-3 py-1 text-small backdrop-blur-sm">
+                    <span className="caps absolute top-4 left-4 rounded-full bg-bg/80 px-3.5 py-1.5 backdrop-blur-sm">
                       {String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
                     </span>
                   </div>
-                  <div className="mt-4 flex items-baseline justify-between gap-4">
-                    <h3 id={`destaque-${project.id}`} className="text-lead leading-tight font-medium tracking-[-0.02em]">
+                  <div className="mt-5 flex items-baseline justify-between gap-4">
+                    <h3 id={`destaque-${project.id}`} className="text-[clamp(1.375rem,1.1rem+0.9vw,1.875rem)] leading-tight">
                       <Link href={`/portfolio/${project.slug}`} className="after:absolute after:inset-0">
                         {project.title}
                       </Link>
                     </h3>
-                    <p className="shrink-0 text-small text-muted">
-                      {[project.category?.name, yearOf(project.eventDate)].filter(Boolean).join(", ")}
+                    <p className="caps shrink-0 text-muted">
+                      {[project.category?.name, yearOf(project.eventDate)].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  <p className="mt-1 max-w-[34rem] text-small text-muted">
+                  <p className="mt-2 max-w-[34rem] text-small text-muted">
                     {project.summary}
                     {project.isDemo ? " Projeto de demonstração." : ""}
                   </p>
@@ -173,12 +211,21 @@ function Featured({ projects }: { projects: PublicProject[] }) {
 const STATEMENT = "Criamos eventos que não existiam antes.".split(" ");
 
 /** A frase da marca acende palavra por palavra enquanto passa pela tela. */
-function About() {
+function About({ image }: { image?: PublicImage }) {
   return (
-    <section id="sobre" data-bg="cream" data-scene="1" aria-labelledby="sobre-titulo" className="scroll-mt-6 bg-bg px-margin pt-[clamp(8rem,16vw,14rem)]">
-      <h2 id="sobre-titulo" className="scroll-words max-w-[16ch] text-[clamp(2.75rem,7.4vw,7.5rem)] leading-[0.96] tracking-[-0.035em]">
+    <section
+      id="sobre"
+      data-bg="cream"
+      data-scene="1"
+      aria-labelledby="sobre-titulo"
+      className="scroll-mt-6 bg-bg px-margin pt-[clamp(8rem,16vw,14rem)]"
+    >
+      <h2
+        id="sobre-titulo"
+        className="scroll-words max-w-[16ch] text-[clamp(2.75rem,7.4vw,7.5rem)] leading-[0.96] tracking-[-0.035em]"
+      >
         {STATEMENT.map((word, i) => (
-          <span key={i} style={{ "--w": i } as React.CSSProperties}>
+          <span key={i} style={{ "--w": i } as React.CSSProperties} className={i >= 3 ? "italic" : undefined}>
             {word}{" "}
           </span>
         ))}
@@ -186,23 +233,26 @@ function About() {
       <div className="mt-[clamp(4rem,8vw,7rem)] grid gap-12 md:grid-cols-12 md:items-end">
         <div
           data-reveal
-          className="relative mx-auto aspect-[3/4] w-[86%] max-w-[30rem] overflow-hidden rounded-t-full rounded-b-[2rem] md:col-span-5 md:mx-0 md:w-full"
+          className="gilt mx-auto w-[86%] max-w-[30rem] md:col-span-5 md:mx-0 md:w-full"
+          style={{ "--frame-r": "999px 999px 2.6rem 2.6rem" } as React.CSSProperties}
         >
-          <Image src={fotoCopoDeLeite} alt="Um copo-de-leite branco sobre fundo escuro" fill sizes="(min-width: 768px) 40vw, 86vw" className="object-cover" />
+          <div className="relative aspect-[3/4] overflow-hidden rounded-t-full rounded-b-[2rem] bg-surface">
+            {image && <MediaImage image={image} fill sizes="(min-width: 768px) 40vw, 86vw" className="object-cover" />}
+          </div>
         </div>
         <div className="flex flex-col gap-12 md:col-span-6 md:col-start-7 md:pb-6">
           <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
-            <h3 className="text-lead tracking-[-0.015em]">Projeto autoral</h3>
+            <h3 className="text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] italic">Projeto autoral</h3>
             <p className="mt-3 text-body">
               Cada festa começa do zero: uma conversa sobre quem vocês são, o lugar escolhido e a luz do horário. Daí sai um
               projeto desenhado para aquele dia, sem pacote pronto.
             </p>
           </div>
           <div data-reveal style={{ "--i": 2 } as React.CSSProperties}>
-            <h3 className="text-lead tracking-[-0.015em]">Design, cenografia e flores</h3>
+            <h3 className="text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] italic">Design, cenografia e flores</h3>
             <p className="mt-3 text-body">
-              Cuidamos do conjunto: mobiliário, tecidos, iluminação e arranjos montados no local pela nossa equipe. Atendemos
-              BH e região e levamos projetos para outras cidades do Brasil.
+              Cuidamos do conjunto: mobiliário, tecidos, iluminação e arranjos montados no local pela nossa equipe. Atendemos BH e
+              região e levamos projetos para outras cidades do Brasil.
             </p>
           </div>
           <Link href="#orcamento" data-reveal style={{ "--i": 3 } as React.CSSProperties} className="btn-primary self-start">
@@ -216,20 +266,14 @@ function About() {
 
 const STAGES = [
   {
-    image: fotoProjeto,
-    alt: "Mesa posta com caminho de flores brancas",
     lead: "Na primeira conversa,",
     text: "entendemos a data, o local, o número de convidados e o clima que vocês imaginam. Depois vem o projeto: paleta, flores da estação, mobiliário e luz, com orçamento detalhado.",
   },
   {
-    image: fotoMontagem,
-    alt: "Floristas montando arranjos altos de hortênsias",
     lead: "No dia do evento,",
     text: "nossa equipe monta flores, tecidos e iluminação no próprio espaço, horas antes da chegada dos convidados, e cuida da desmontagem ao final.",
   },
   {
-    image: fotoEvento,
-    alt: "Colunas envoltas em cortinas de luzes quentes",
     lead: "Quando as portas abrem,",
     text: "tudo já está aceso. Vocês só chegam e vivem a festa.",
   },
@@ -239,38 +283,73 @@ function Stage({ index, className }: { index: number; className?: string }) {
   const s = STAGES[index];
   return (
     <p data-reveal style={{ "--i": 1 } as React.CSSProperties} className={`max-w-[36ch] text-body ${className ?? ""}`}>
-      <strong className="font-semibold">{s.lead}</strong> {s.text}
+      <em className="text-lead text-noir-ink">{s.lead}</em> {s.text}
     </p>
   );
 }
 
-/** Três fotografias descendo em diagonal; o texto de cada etapa ocupa o vão que a escada deixa. */
-function Process() {
+/**
+ * O salão à noite: fundo café, luzes champanhe. Três fotografias descendo em diagonal;
+ * o texto de cada etapa ocupa o vão que a escada deixa.
+ */
+function Process({ images }: { images: PublicImage[] }) {
+  const frame = { "--gilt": "var(--noir-ink)" } as React.CSSProperties;
   return (
-    <section data-bg="brand" data-scene="2" aria-labelledby="processo-titulo" className="mt-[clamp(6rem,12vw,10rem)] bg-brand px-margin pt-[clamp(7rem,14vw,12rem)] pb-[clamp(7rem,14vw,12rem)] text-brand-text">
+    <section
+      data-bg="noir"
+      data-scene="2"
+      aria-labelledby="processo-titulo"
+      className="mt-[clamp(6rem,12vw,10rem)] bg-noir px-margin pt-[clamp(7rem,14vw,12rem)] pb-[clamp(7rem,14vw,12rem)] text-noir-text"
+    >
       <div className="grid gap-6 md:grid-cols-12">
-        <figure data-reveal className="max-md:order-2 md:col-span-5 lg:col-span-4">
-          <Image src={STAGES[0].image} alt={STAGES[0].alt} sizes="(min-width: 768px) 33vw, 100vw" className="aspect-[3/4] w-full rounded-[2rem] object-cover" />
+        <figure data-reveal style={frame} className="gilt max-md:order-2 max-md:m-[14px] md:col-span-5 lg:col-span-4">
+          {images[0] && (
+            <MediaImage
+              image={images[0]}
+              sizes="(min-width: 768px) 33vw, 100vw"
+              className="aspect-[3/4] w-full rounded-[2rem] object-cover"
+            />
+          )}
         </figure>
         <div className="max-md:contents md:col-span-6 md:col-start-7 md:flex md:flex-col md:gap-10">
           <h2 id="processo-titulo" data-reveal className="text-head max-md:order-1 max-md:mb-4">
-            Do primeiro encontro à festa
+            Do primeiro encontro <em className="text-noir-ink">à festa</em>
           </h2>
           <Stage index={0} className="max-md:order-3 max-md:mt-6" />
         </div>
       </div>
 
       <div className="mt-14 grid gap-6 md:mt-24 md:grid-cols-12 lg:-mt-[16vw]">
-        <figure data-reveal className="ml-auto w-[62%] md:col-span-4 md:col-start-5 md:ml-0 md:w-auto lg:col-span-3 lg:col-start-6">
-          <Image src={STAGES[1].image} alt={STAGES[1].alt} sizes="(min-width: 768px) 25vw, 62vw" className="aspect-square w-full rounded-[2rem] object-cover" />
+        <figure
+          data-reveal
+          style={frame}
+          className="gilt ml-auto w-[62%] md:col-span-4 md:col-start-5 md:ml-0 md:w-auto lg:col-span-3 lg:col-start-6"
+        >
+          {images[1] && (
+            <MediaImage
+              image={images[1]}
+              sizes="(min-width: 768px) 25vw, 62vw"
+              className="aspect-square w-full rounded-[2rem] object-cover"
+            />
+          )}
         </figure>
         <Stage index={1} className="ml-auto w-[62%] md:col-span-4 md:col-start-9 md:ml-0 md:w-auto" />
       </div>
 
       <div className="mt-14 grid gap-6 md:mt-[120px] md:grid-cols-12">
         <Stage index={2} className="w-[78%] md:order-1 md:col-span-4 md:col-start-3 md:w-auto md:justify-self-end" />
-        <figure data-reveal className="w-[78%] md:order-2 md:col-span-6 md:col-start-7 md:w-auto lg:col-span-5 lg:col-start-8">
-          <Image src={STAGES[2].image} alt={STAGES[2].alt} sizes="(min-width: 768px) 42vw, 78vw" className="aspect-[16/10] w-full rounded-[2rem] object-cover" />
+        <figure
+          data-reveal
+          style={frame}
+          className="gilt w-[70%] md:order-2 md:col-span-5 md:col-start-7 md:w-auto lg:col-span-4 lg:col-start-8"
+        >
+          {images[2] && (
+            <MediaImage
+              image={images[2]}
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 42vw, 70vw"
+              className="aspect-[4/5] w-full rounded-[2rem] object-cover"
+            />
+          )}
         </figure>
       </div>
     </section>
@@ -293,10 +372,12 @@ function Contact({ settings }: { settings: Awaited<ReturnType<typeof getSiteSett
       className="relative mt-[clamp(7rem,14vw,13rem)] flex min-h-[86svh] scroll-mt-0 flex-col justify-between gap-16 overflow-hidden bg-brand px-margin py-10 text-brand-text md:min-h-svh md:py-12 [&>*]:relative"
     >
       <div className="max-w-[34rem]">
-        <h2 id="contato-titulo" className="text-lead tracking-[-0.015em]">
+        <h2 id="contato-titulo" className="caps text-brand-ink">
           Contato
         </h2>
-        <p className="mt-3 text-lead leading-snug">Conte a data, o lugar e quantas pessoas. Respondemos com uma proposta.</p>
+        <p className="mt-4 text-lead leading-snug italic">
+          Conte a data, o lugar e quantas pessoas. Respondemos com uma proposta.
+        </p>
       </div>
 
       {display && displayHref ? (
@@ -304,18 +385,18 @@ function Contact({ settings }: { settings: Awaited<ReturnType<typeof getSiteSett
           href={displayHref}
           target={settings.email ? undefined : "_blank"}
           rel={settings.email ? undefined : "noopener"}
-          className="block text-[clamp(2.75rem,11.5vw,13rem)] leading-[0.95] font-medium tracking-[-0.04em] break-all transition-colors duration-300 text-brand-ink hover:text-white md:break-normal"
+          className="block text-[clamp(2.75rem,11.5vw,13rem)] leading-[0.95] tracking-[-0.04em] italic break-all transition-colors duration-300 text-brand-ink hover:text-white md:break-normal"
         >
           {display}
         </a>
       ) : null}
 
-      <div className="flex flex-col gap-3 text-small md:flex-row md:justify-between">
-        <p className="flex flex-col gap-1">
+      <div className="caps flex flex-col gap-3 md:flex-row md:justify-between">
+        <p className="flex flex-col gap-2">
           {phone && <span>{phone}</span>}
           <span>{settings.city || "Belo Horizonte, MG"}</span>
         </p>
-        <ul className="flex flex-col gap-1 md:flex-row md:gap-6">
+        <ul className="flex flex-col gap-2 md:flex-row md:gap-8">
           {wa && (
             <li>
               <a href={wa} target="_blank" rel="noopener" className="link-quiet">

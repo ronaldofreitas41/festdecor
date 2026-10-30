@@ -12,7 +12,13 @@ const GUESTS = ["até 50", "50 a 100", "100 a 200", "200 a 300", "mais de 300"];
  */
 export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; contact: ContactSettings }) {
   const id = useId();
-  const [q, setQ] = useState<QuoteRequest>({ eventType: eventTypes[0] ?? "Casamento", month: "", guests: "", place: "", name: "" });
+  const [q, setQ] = useState<QuoteRequest>({
+    eventType: eventTypes[0] ?? "Casamento",
+    month: "",
+    guests: "",
+    place: "",
+    name: "",
+  });
   const [copied, setCopied] = useState(false);
   const set = (key: keyof QuoteRequest) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setQ((prev) => ({ ...prev, [key]: e.target.value }));
@@ -36,13 +42,13 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
   }
 
   const fieldClass =
-    "mt-2 block w-full min-h-12 bg-surface-2 px-4 text-[1rem] text-ink placeholder:text-muted/80 focus:outline-2 focus:outline-accent";
+    "mt-1 block w-full min-h-12 border-b border-gold/60 bg-transparent px-0 font-serif text-[1.0625rem] tracking-normal normal-case text-ink placeholder:text-muted/70 transition-colors focus:border-accent focus:outline-none";
 
   return (
     <div className="grid gap-12 md:grid-cols-12 md:gap-6">
       <form className="md:col-span-6 lg:col-span-5" onSubmit={(e) => e.preventDefault()} aria-describedby={`${id}-hint`}>
         <fieldset>
-          <legend className="text-small text-muted">Tipo de evento</legend>
+          <legend className="caps text-muted">Tipo de evento</legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {[...eventTypes, "Outro"].map((type) => (
               <label key={type} className="cursor-pointer">
@@ -54,7 +60,7 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
                   onChange={set("eventType")}
                   className="peer sr-only"
                 />
-                <span className="inline-flex min-h-11 items-center rounded-full bg-surface-2 px-4 text-small text-ink transition-colors peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:bg-surface-hover peer-checked:hover:bg-ink">
+                <span className="inline-flex min-h-11 items-center rounded-full px-4 text-small text-ink ring-1 ring-gold/50 transition-colors peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent hover:bg-surface peer-checked:ring-ink peer-checked:hover:bg-ink">
                   {type}
                 </span>
               </label>
@@ -63,11 +69,11 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
         </fieldset>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
-          <label className="text-small text-muted">
+          <label className="caps text-muted">
             Mês do evento
             <input type="month" value={q.month} onChange={set("month")} className={`${fieldClass} [color-scheme:light]`} />
           </label>
-          <label className="text-small text-muted">
+          <label className="caps text-muted">
             Convidados
             <select value={q.guests} onChange={set("guests")} className={fieldClass}>
               <option value="">Ainda não sei</option>
@@ -78,11 +84,11 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
               ))}
             </select>
           </label>
-          <label className="text-small text-muted">
+          <label className="caps text-muted">
             Local ou cidade
             <input value={q.place} onChange={set("place")} placeholder="Ex.: Nova Lima" maxLength={80} className={fieldClass} />
           </label>
-          <label className="text-small text-muted">
+          <label className="caps text-muted">
             Seu nome
             <input value={q.name} onChange={set("name")} autoComplete="given-name" maxLength={60} className={fieldClass} />
           </label>
@@ -93,12 +99,14 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
       </form>
 
       <div className="md:col-span-6 lg:col-start-7">
-        <figure className="bg-brand px-7 py-9 text-brand-text sm:px-10 sm:py-12" aria-live="polite">
-          <BrandLogo id="logo-convite" title="" className="mb-6 h-16 w-auto text-brand-ink sm:h-20" />
-          <figcaption className="text-small text-brand-ink">Sua mensagem</figcaption>
-          <p className="mt-5 text-lead leading-snug font-medium tracking-[-0.015em]">
-            {q.name.trim() ? `${q.name.trim()} quer celebrar` : "Um pedido de orçamento para"}
-            {" "}
+        <figure
+          className="rounded-[2rem] bg-brand px-8 py-10 text-center text-brand-text shadow-[0_40px_80px_-40px_rgb(40_15_5/0.6)] outline-1 -outline-offset-[12px] outline-brand-ink/45 sm:px-12 sm:py-14"
+          aria-live="polite"
+        >
+          <BrandLogo id="logo-convite" title="" className="mx-auto mb-6 h-16 w-auto text-brand-ink sm:h-20" />
+          <figcaption className="caps text-brand-ink">Sua mensagem</figcaption>
+          <p className="mx-auto mt-5 max-w-[26ch] text-[clamp(1.375rem,1.1rem+1vw,2rem)] leading-snug italic">
+            {q.name.trim() ? `${q.name.trim()} quer celebrar` : "Um pedido de orçamento para"}{" "}
             {q.eventType === "Outro" ? "um evento" : q.eventType.toLowerCase()}
             {q.month ? ` em ${formatMonth(q.month)}` : ""}
             {q.place.trim() ? `, em ${q.place.trim()}` : ""}
@@ -112,7 +120,13 @@ export function QuoteComposer({ eventTypes, contact }: { eventTypes: string[]; c
               Enviar pelo WhatsApp
             </a>
           ) : ig ? (
-            <a href={`https://ig.me/m/${contact.instagram}`} target="_blank" rel="noopener" onClick={copyThenOpenInstagram} className="btn-primary">
+            <a
+              href={`https://ig.me/m/${contact.instagram}`}
+              target="_blank"
+              rel="noopener"
+              onClick={copyThenOpenInstagram}
+              className="btn-primary"
+            >
               Copiar e abrir o Instagram
             </a>
           ) : null}

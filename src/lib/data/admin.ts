@@ -11,6 +11,12 @@ const coverSubquery = sql<string | null>`(
   select ${pi.mediaId} from ${pi} where ${pi.projectId} = ${p.id} order by ${pi.position} asc limit 1
 )`;
 
+/** A capa vem de um post do Instagram (carregada direto de lá, sem otimização local). */
+const coverExternalSubquery = sql<boolean>`coalesce((
+  select ${m.sourceUrl} is not null from ${pi} join ${m} on ${m.id} = ${pi.mediaId}
+  where ${pi.projectId} = ${p.id} order by ${pi.position} asc limit 1
+), false)`;
+
 export type AdminProjectRow = Awaited<ReturnType<typeof listProjects>>[number];
 
 export async function listProjects() {
@@ -28,6 +34,7 @@ export async function listProjects() {
       updatedAt: p.updatedAt,
       category: c.name,
       coverId: coverSubquery,
+      coverExternal: coverExternalSubquery,
       imageCount: sql<number>`(select count(*)::int from ${pi} where ${pi.projectId} = ${p.id})`,
     })
     .from(p)
@@ -40,7 +47,14 @@ export async function getProjectForEdit(id: string) {
   const [project] = await db.select().from(p).where(eq(p.id, id));
   if (!project) return null;
   const images = await db
-    .select({ id: m.id, width: m.width, height: m.height, alt: m.alt, filename: m.filename })
+    .select({
+      id: m.id,
+      width: m.width,
+      height: m.height,
+      alt: m.alt,
+      filename: m.filename,
+      external: sql<boolean>`${m.sourceUrl} is not null`,
+    })
     .from(pi)
     .innerJoin(m, eq(m.id, pi.mediaId))
     .where(eq(pi.projectId, id))
@@ -61,6 +75,7 @@ export async function listMedia() {
       size: m.size,
       alt: m.alt,
       credit: m.credit,
+      external: sql<boolean>`${m.sourceUrl} is not null`,
       createdAt: m.createdAt,
       usage: sql<number>`(select count(*)::int from ${pi} where ${pi.mediaId} = ${m.id})`,
     })

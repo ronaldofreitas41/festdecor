@@ -72,7 +72,10 @@ export const categories = pgTable("categories", {
   ...timestamps,
 });
 
-/** Imagens enviadas pelo painel. Os bytes ficam no próprio banco (WebP já otimizado). */
+/**
+ * Imagens. Enviadas pelo painel: os bytes ficam no próprio banco (WebP já otimizado).
+ * Do Instagram: só o link do post fica guardado (`sourceUrl`); a imagem é carregada direto de lá.
+ */
 export const media = pgTable("media", {
   id: uuid("id").primaryKey().defaultRandom(),
   filename: text("filename").notNull(),
@@ -83,7 +86,10 @@ export const media = pgTable("media", {
   alt: text("alt").notNull().default(""),
   /** Crédito exibido no site (obrigatório para imagens de terceiros). */
   credit: text("credit"),
-  data: bytea("data").notNull(),
+  /** Bytes da imagem enviada; nulo quando a imagem vem de um post do Instagram. */
+  data: bytea("data"),
+  /** Link do post do Instagram (https://www.instagram.com/p/…/). */
+  sourceUrl: text("source_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
